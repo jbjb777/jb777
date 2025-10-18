@@ -1,92 +1,169 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>🔥 서버 없는 실시간 채팅</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>㋡꧁정빈777꧂ - 실시간 채팅</title>
+
+  <!-- 🟢 파비콘 (너의 업로드 사이트와 동일한 SVG 방식) -->
+  <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="45" fill="%234CAF50" />
+    <text x="50" y="57" font-size="42" text-anchor="middle" fill="white" font-family="Arial">💬</text>
+  </svg>' />
+
   <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --accent: #4CAF50;
+      --muted: #9aa0a6;
+      --bubble: #eaf3ff;
+    }
     body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background: #f4f6fa;
+      margin: 0;
+      background: var(--bg);
+      font-family: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", Roboto;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .container {
+      width: 90%;
+      max-width: 850px;
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+      margin-top: 30px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
+    }
+    /* 상단바 */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .exit-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid rgba(0, 0, 0, 0.06);
+      display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+      cursor: pointer;
+      font-size: 20px;
+      transition: 0.2s;
     }
-    h2 {
+    .exit-btn:hover {
+      transform: scale(1.05);
+    }
+    .title {
+      font-size: 18px;
+      font-weight: 700;
       color: #333;
-      margin-bottom: 10px;
     }
-    #chat {
-      width: 90%;
-      max-width: 500px;
-      height: 400px;
-      overflow-y: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    #inputBox {
-      width: 90%;
-      max-width: 500px;
+    .actions {
+      margin-left: auto;
       display: flex;
       gap: 8px;
     }
-    input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      background: #4CAF50;
-      color: white;
+    .action-btn {
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: #fff;
       cursor: pointer;
-      font-size: 15px;
-      transition: 0.2s;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      font-size: 13px;
     }
-    button:hover {
-      background: #45a049;
+
+    /* 채팅 영역 */
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #fafbff, #f5f7fb);
+      border: 1px solid rgba(0, 0, 0, 0.03);
+      height: 420px;
+      margin-bottom: 12px;
     }
     .msg {
-      background: #eaf3ff;
-      padding: 8px 12px;
-      border-radius: 8px;
-      margin: 5px 0;
-      text-align: left;
-      color: #333;
-      font-size: 15px;
+      display: inline-block;
+      max-width: 75%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--bubble);
+      color: #111;
+      font-size: 14px;
+      margin-bottom: 6px;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+      animation: fadeIn 0.2s ease-in;
     }
-    .time {
-      font-size: 12px;
-      color: gray;
-      text-align: right;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 입력 영역 */
+    .input-area {
+      display: flex;
+      gap: 8px;
+    }
+    #messageInput {
+      flex: 1;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    #sendBtn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    #sendBtn:hover {
+      background: #43a047;
     }
   </style>
-
-  <!-- ✅ Firebase v8 방식 SDK 로드 (전역 firebase 객체 포함) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
-
 <body>
-  <h2>🔥 서버 없는 실시간 채팅방</h2>
-  <div id="chat"></div>
+  <div class="container">
+    <div class="topbar">
+      <div class="exit-btn" onclick="window.location.href='https://jbjb.r-e.kr'">✕</div>
+      <div class="title">㋡꧁정빈777꧂ 채팅방</div>
+      <div class="actions">
+        <button class="action-btn">미리보기</button>
+        <button class="action-btn">링크 복사</button>
+      </div>
+    </div>
 
-  <div id="inputBox">
-    <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off">
-    <button id="send">전송</button>
+    <div id="chat"></div>
+
+    <div class="input-area">
+      <input id="messageInput" type="text" placeholder="메시지를 입력하세요..." />
+      <button id="sendBtn">보내기</button>
+    </div>
   </div>
 
-  <script>
-    // ✅ 네 Firebase 설정
+  <!-- 🟠 Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
       authDomain: "chat-6086d.firebaseapp.com",
@@ -98,45 +175,30 @@
       measurementId: "G-02J04BCCS0"
     };
 
-    // ✅ Firebase 초기화
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const chatRef = ref(db, "messages");
 
-    const chat = document.getElementById("chat");
-    const msg = document.getElementById("msg");
-    const send = document.getElementById("send");
+    const chatBox = document.getElementById("chat");
+    const input = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
 
-    // 메시지 전송
-    send.onclick = () => {
-      const text = msg.value.trim();
+    sendBtn.onclick = sendMessage;
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") sendMessage(); });
+
+    function sendMessage() {
+      const text = input.value.trim();
       if (!text) return;
-      db.ref("messages").push({
-        text,
-        time: Date.now()
-      });
-      msg.value = "";
-    };
+      push(chatRef, { text });
+      input.value = "";
+    }
 
-    // Enter키로 전송
-    msg.addEventListener("keypress", e => {
-      if (e.key === "Enter") send.click();
-    });
-
-    // 실시간 메시지 표시
-    db.ref("messages").on("value", snapshot => {
-      chat.innerHTML = "";
-      const data = snapshot.val();
-      if (!data) return;
-
-      const messages = Object.values(data).sort((a, b) => a.time - b.time);
-      for (const m of messages) {
-        const div = document.createElement("div");
-        div.className = "msg";
-        const time = new Date(m.time).toLocaleTimeString();
-        div.innerHTML = `<div>${m.text}</div><div class="time">${time}</div>`;
-        chat.appendChild(div);
-      }
-      chat.scrollTop = chat.scrollHeight;
+    onChildAdded(chatRef, (data) => {
+      const msg = document.createElement("div");
+      msg.className = "msg";
+      msg.textContent = data.val().text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
     });
   </script>
 </body>
