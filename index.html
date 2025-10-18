@@ -71,9 +71,9 @@
     }
   </style>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js"></script>
+  <!-- ✅ Firebase v8 방식 SDK 로드 (전역 firebase 객체 포함) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 
 <body>
@@ -98,7 +98,8 @@
       measurementId: "G-02J04BCCS0"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
+    // ✅ Firebase 초기화
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const chat = document.getElementById("chat");
@@ -116,7 +117,7 @@
       msg.value = "";
     };
 
-    // Enter키로도 전송
+    // Enter키로 전송
     msg.addEventListener("keypress", e => {
       if (e.key === "Enter") send.click();
     });
