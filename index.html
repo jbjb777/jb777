@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>㋡꧁정빈777꧂ - 실시간 채팅</title>
+<title>㋡꧁정빈777꧂ - 채팅</title>
 <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 2000 2000">
   <defs>
@@ -98,12 +98,17 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
 }
 .replyBtn:hover { transform:translateY(-1px); box-shadow:0 4px 8px rgba(0,255,204,0.5); }
 
+/* 링크 스타일 */
+.msg a {
+  color:#00bfff;
+  text-decoration:underline;
+}
 </style>
 </head>
 <body>
 
 <div id="nicknameModal">
-  <h2>여기서 사용할 닉네임을 입력해주세요</h2>
+  <h2>여기에서 사용할 닉네임을 입력해주세요</h2>
   <input id="nicknameInput" placeholder="닉네임">
   <button id="nicknameBtn">확인</button>
 </div>
@@ -172,6 +177,16 @@ function clearReply(){
   replyPreview.textContent="";
 }
 
+// URL 변환 함수
+function linkify(text){
+  const urlRegex = /((https?:\/\/)?[^\s]+\.(com|net|io|한국)(\/[^\s]*)?)/gi;
+  return text.replace(urlRegex, function(url){
+    let href = url;
+    if(!href.startsWith('http')) href='https://'+href;
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+  });
+}
+
 // 메시지 전송
 sendBtn.onclick = ()=>{
   const text = msgInput.value.trim();
@@ -194,10 +209,10 @@ db.ref("messages").on("value", snapshot=>{
 
     let replyText = "";
     if(m.replyTo && data[m.replyTo]){
-      replyText = `<div class="replyInfo">(${data[m.replyTo].nickname})에 답장: ${data[m.replyTo].text.slice(0,30)}</div>`;
+      replyText = `<div class="replyInfo">(${data[m.replyTo].nickname})에 답장: ${linkify(data[m.replyTo].text).slice(0,30)}</div>`;
     }
 
-    div.innerHTML=`${replyText}<div class="nickname">${m.nickname}</div><div>${m.text}</div><div class="time">${new Date(m.time).toLocaleTimeString()}</div>`;
+    div.innerHTML=`${replyText}<div class="nickname">${m.nickname}</div><div>${linkify(m.text)}</div><div class="time">${new Date(m.time).toLocaleTimeString()}</div>`;
     
     const rBtn = document.createElement("button");
     rBtn.className="replyBtn";
