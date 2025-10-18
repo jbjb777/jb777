@@ -60,23 +60,50 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
 .msg {
   background:linear-gradient(135deg,#00aaff,#0044ff); padding:8px 12px;
   border-radius:12px; margin:5px 0; box-shadow:0 2px 8px rgba(0,0,0,0.5);
-  font-size:15px; color:#fff;
+  font-size:15px; color:#fff; position:relative;
 }
 .msg .nickname { font-weight:700; color:#ffd700; margin-bottom:3px; }
 .msg .time { font-size:12px; color:#aaa; text-align:right; margin-top:3px; }
+.msg .replyInfo { font-size:12px; color:#bbb; margin-bottom:3px; }
 
 /* 입력 영역 */
-#inputBox { display:flex; gap:8px; }
+#inputBox { display:flex; gap:8px; margin-top:5px; flex-direction:column; }
 #msg { flex:1; padding:10px; border-radius:12px; border:none; background:#2c2c2c; color:#fff; outline:none; }
 #send { background:linear-gradient(135deg,#00ffcc,#3366ff); color:#fff; border:none; border-radius:30px; padding:12px 24px; cursor:pointer; box-shadow:0 8px 16px rgba(0,255,204,0.3); transition:0.2s; }
 #send:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,255,204,0.5); }
+
+/* 답장 UI */
+#replyBox {
+  display:none;
+  width:100%;
+  background:#2c2c2c;
+  color:gray;
+  padding:5px 10px;
+  border-radius:8px;
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+#replyBox svg { width:12px; height:12px; transform:rotate(90deg); fill:gray; }
+.replyBtn {
+  position:absolute;
+  top:5px; right:5px;
+  background:linear-gradient(135deg,#00ffcc,#3366ff);
+  border:none; border-radius:12px; padding:2px 6px; font-size:12px;
+  cursor:pointer; box-shadow:0 4px 8px rgba(0,255,204,0.3);
+}
+.replyBtn:hover { transform:translateY(-1px); box-shadow:0 4px 8px rgba(0,255,204,0.5); }
 
 </style>
 </head>
 <body>
 
 <div id="nicknameModal">
-  <h2>여기서 사용할 닉네임을 적어주세요</h2>
+  <h2>여기서 사용할 닉네임을 입력해주세요</h2>
   <input id="nicknameInput" placeholder="닉네임">
   <button id="nicknameBtn">확인</button>
 </div>
@@ -84,6 +111,12 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
 <div class="container">
   <h2>㋡꧁정빈777꧂ 실시간 채팅</h2>
   <div id="chat"></div>
+
+  <div id="replyBox">
+    <svg viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 12l1.41 1.41L11 7.83v12.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/></svg>
+    <span id="replyPreview"></span>
+  </div>
+
   <div id="inputBox">
     <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off">
     <button id="send">전송</button>
@@ -111,42 +144,70 @@ const chat = document.getElementById("chat");
 const msgInput = document.getElementById("msg");
 const sendBtn = document.getElementById("send");
 
+// 닉네임
 let nickname = "";
-
-// 닉네임 입력
 const nicknameModal = document.getElementById("nicknameModal");
 const nicknameInput = document.getElementById("nicknameInput");
 const nicknameBtn = document.getElementById("nicknameBtn");
-nicknameBtn.onclick = () => {
+nicknameBtn.onclick = ()=>{
   const val = nicknameInput.value.trim();
   if(!val) return alert("닉네임을 입력하세요!");
   nickname = val;
-  nicknameModal.style.display = "none";
+  nicknameModal.style.display="none";
 };
 
+// 답장
+let replyTo = null;
+const replyBox = document.getElementById("replyBox");
+const replyPreview = document.getElementById("replyPreview");
+function setReply(key, text, user){
+  replyTo = key;
+  replyBox.style.display="flex";
+  replyPreview.textContent = text.slice(0,10);
+  msgInput.focus();
+}
+function clearReply(){
+  replyTo=null;
+  replyBox.style.display="none";
+  replyPreview.textContent="";
+}
+
 // 메시지 전송
-sendBtn.onclick = () => {
+sendBtn.onclick = ()=>{
   const text = msgInput.value.trim();
   if(!text || !nickname) return;
-  db.ref("messages").push({ text, nickname, time: Date.now() });
-  msgInput.value = "";
+  db.ref("messages").push({ text, nickname, time: Date.now(), replyTo });
+  msgInput.value="";
+  clearReply();
 };
-msgInput.addEventListener("keypress", e => { if(e.key==="Enter") sendBtn.click(); });
+msgInput.addEventListener("keypress", e=>{ if(e.key==="Enter") sendBtn.click(); });
 
 // 실시간 업데이트
 db.ref("messages").on("value", snapshot=>{
   chat.innerHTML="";
   const data = snapshot.val();
   if(!data) return;
-  const messages = Object.values(data).sort((a,b)=>a.time-b.time);
-  for(const m of messages){
+  const messages = Object.entries(data).sort((a,b)=>a[1].time-b[1].time);
+  for(const [key,m] of messages){
     const div = document.createElement("div");
     div.className="msg";
-    const time=new Date(m.time).toLocaleTimeString();
-    div.innerHTML=`<div class="nickname">${m.nickname}</div><div>${m.text}</div><div class="time">${time}</div>`;
+
+    let replyText = "";
+    if(m.replyTo && data[m.replyTo]){
+      replyText = `<div class="replyInfo">(${data[m.replyTo].nickname})에 답장: ${data[m.replyTo].text.slice(0,30)}</div>`;
+    }
+
+    div.innerHTML=`${replyText}<div class="nickname">${m.nickname}</div><div>${m.text}</div><div class="time">${new Date(m.time).toLocaleTimeString()}</div>`;
+    
+    const rBtn = document.createElement("button");
+    rBtn.className="replyBtn";
+    rBtn.textContent="↩";
+    rBtn.onclick = ()=>setReply(key, m.text, m.nickname);
+    div.appendChild(rBtn);
+
     chat.appendChild(div);
   }
-  chat.scrollTop=chat.scrollHeight;
+  chat.scrollTop = chat.scrollHeight;
 });
 </script>
 </body>
