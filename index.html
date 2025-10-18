@@ -179,7 +179,7 @@ function clearReply(){
 
 // URL 변환 함수
 function linkify(text){
-  const urlRegex = /((https?:\/\/)?[^\s]+\.(com|net|io|한국)(\/[^\s]*)?)/gi;
+  const urlRegex = /((https?:\/\/)?[^\s]+\.(com|net|io|한국|org|mil|gov|edu|co|kr|us)(\/[^\s]*)?)/gi;
   return text.replace(urlRegex, function(url){
     let href = url;
     if(!href.startsWith('http')) href='https://'+href;
