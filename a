@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>🔥 서버 없는 실시간 채팅</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f4f6fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    #chat {
+      width: 90%;
+      max-width: 500px;
+      height: 400px;
+      overflow-y: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    #inputBox {
+      width: 90%;
+      max-width: 500px;
+      display: flex;
+      gap: 8px;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .msg {
+      background: #eaf3ff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin: 5px 0;
+      text-align: left;
+      color: #333;
+      font-size: 15px;
+    }
+    .time {
+      font-size: 12px;
+      color: gray;
+      text-align: right;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js"></script>
+</head>
+
+<body>
+  <h2>🔥 서버 없는 실시간 채팅방</h2>
+  <div id="chat"></div>
+
+  <div id="inputBox">
+    <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off">
+    <button id="send">전송</button>
+  </div>
+
+  <script>
+    // ✅ 네 Firebase 설정
+    const firebaseConfig = {
+      apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
+      authDomain: "chat-6086d.firebaseapp.com",
+      databaseURL: "https://chat-6086d-default-rtdb.firebaseio.com",
+      projectId: "chat-6086d",
+      storageBucket: "chat-6086d.firebasestorage.app",
+      messagingSenderId: "1050767904189",
+      appId: "1:1050767904189:web:8f23809cbccd9c98c256d4",
+      measurementId: "G-02J04BCCS0"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const chat = document.getElementById("chat");
+    const msg = document.getElementById("msg");
+    const send = document.getElementById("send");
+
+    // 메시지 전송
+    send.onclick = () => {
+      const text = msg.value.trim();
+      if (!text) return;
+      db.ref("messages").push({
+        text,
+        time: Date.now()
+      });
+      msg.value = "";
+    };
+
+    // Enter키로도 전송
+    msg.addEventListener("keypress", e => {
+      if (e.key === "Enter") send.click();
+    });
+
+    // 실시간 메시지 표시
+    db.ref("messages").on("value", snapshot => {
+      chat.innerHTML = "";
+      const data = snapshot.val();
+      if (!data) return;
+
+      const messages = Object.values(data).sort((a, b) => a.time - b.time);
+      for (const m of messages) {
+        const div = document.createElement("div");
+        div.className = "msg";
+        const time = new Date(m.time).toLocaleTimeString();
+        div.innerHTML = `<div>${m.text}</div><div class="time">${time}</div>`;
+        chat.appendChild(div);
+      }
+      chat.scrollTop = chat.scrollHeight;
+    });
+  </script>
+</body>
+</html>
