@@ -1,146 +1,153 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>🔥 서버 없는 실시간 채팅</title>
-  <style>
-    body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background: #121212; /* 검은 배경 */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    h2 {
-      color: #ffffff;
-      margin-bottom: 10px;
-    }
-    #chat {
-      width: 90%;
-      max-width: 500px;
-      height: 400px;
-      overflow-y: auto;
-      background: linear-gradient(145deg, #0d0d0d, #1a1a1a);
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-      padding: 10px;
-      margin-bottom: 10px;
-      color: #fff;
-    }
-    #inputBox {
-      width: 90%;
-      max-width: 500px;
-      display: flex;
-      gap: 8px;
-    }
-    input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      font-size: 15px;
-      background: #1e1e1e;
-      color: #fff;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
-      outline: none;
-    }
-    input::placeholder {
-      color: #888;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      cursor: pointer;
-      background: linear-gradient(90deg, #00aaff, #0055ff);
-      color: white;
-      font-weight: 600;
-      box-shadow: 0 4px 12px rgba(0,85,255,0.5);
-      transition: 0.2s;
-    }
-    button:hover {
-      background: linear-gradient(90deg, #0055ff, #00aaff);
-      box-shadow: 0 6px 16px rgba(0,85,255,0.7);
-    }
-    .msg {
-      background: linear-gradient(90deg, #0d47a1, #1976d2);
-      padding: 8px 12px;
-      border-radius: 12px;
-      margin: 5px 0;
-      text-align: left;
-      color: #fff;
-      font-size: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    }
-    .time {
-      font-size: 12px;
-      color: #aaa;
-      text-align: right;
-      margin-top: 4px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 실시간 채팅</title>
+<link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 2000 2000">
+  <defs>
+    <linearGradient id="linearGradient1" x1="1576.7" y1="1817" x2="423.3" y2="183" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="%233478f6"/>
+      <stop offset="1" stop-color="%2353b6f9"/>
+    </linearGradient>
+    <filter id="filter1" x="0" y="0" width="2000" height="2000" color-interpolation-filters="sRGB">
+      <feFlood flood-color="%23000000" flood-opacity="0.52"/>
+      <feComposite in2="SourceGraphic" operator="out"/>
+      <feGaussianBlur stdDeviation="43"/>
+      <feOffset dx="35" dy="24"/>
+      <feComposite in2="SourceGraphic" operator="atop"/>
+    </filter>
+  </defs>
+  <path fill="url(%23linearGradient1)" d="M 2000 1000 C 2000 448 1552 0 1000 0 C 448 0 0 448 0 1000 C 0 1552 448 2000 1000 2000 C 1552 2000 2000 1552 2000 1000 Z"/>
+  <path fill="%23fff" filter="url(%23filter1)" d="M 1137 506 C 1252 449 1369 497 1427 625 L 1459 696 C 1484 752 1488 821 1471 878 L 1472 877 C 1535 891 1581 939 1608 997 L 1632 1052 C 1698 1199 1657 1324 1544 1381 L 1175 1565 L 972 1114 C 1002 1241 946 1377 834 1433 L 776 1462 C 654 1523 518 1467 449 1343 L 596 1269 C 625 1309 663 1331 708 1308 L 758 1283 C 813 1256 830 1185 802 1124 L 525 509 L 672 435 L 784 683 L 1137 506 Z M 1444 1232 C 1488 1210 1504 1149 1480 1095 L 1476 1085 C 1452 1033 1397 1007 1353 1029 L 1151 1130 L 1242 1333 L 1444 1232 Z M 1184 679 L 991 775 L 1084 981 L 1276 885 C 1319 864 1336 802 1312 749 L 1306 736 C 1283 684 1226 658 1184 679 Z"/>
+</svg>' />
 
-  <!-- Firebase v8 SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<style>
+body {
+  margin:0; padding:0; font-family:'Segoe UI', sans-serif;
+  background:#121212; color:#fff; display:flex; justify-content:center; align-items:center; min-height:100vh;
+}
+.container {
+  background:#1e1e1e; padding:20px; border-radius:16px;
+  box-shadow:0 0 30px rgba(0,0,0,0.6); width:90%; max-width:600px; position:relative;
+}
+h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
+
+/* 닉네임 모달 */
+#nicknameModal {
+  position:fixed; top:0; left:0; width:100%; height:100%; 
+  background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:1000;
+  backdrop-filter: blur(5px); flex-direction:column; gap:12px;
+}
+#nicknameModal input {
+  padding:12px 20px; border-radius:12px; border:none; font-size:16px;
+  width:250px; outline:none; background:#2c2c2c; color:#fff;
+}
+#nicknameModal button {
+  padding:12px 24px; border-radius:30px; border:none; font-size:16px;
+  cursor:pointer; background:linear-gradient(135deg,#00ffcc,#3366ff); color:#fff;
+  box-shadow:0 8px 16px rgba(0,255,204,0.3); transition:0.2s;
+}
+#nicknameModal button:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,255,204,0.5); }
+
+/* 채팅 영역 */
+#chat {
+  height:400px; overflow-y:auto; background:#121212;
+  border-radius:12px; padding:10px; margin-bottom:10px;
+  border:1px solid #444;
+}
+.msg {
+  background:linear-gradient(135deg,#00aaff,#0044ff); padding:8px 12px;
+  border-radius:12px; margin:5px 0; box-shadow:0 2px 8px rgba(0,0,0,0.5);
+  font-size:15px; color:#fff;
+}
+.msg .nickname { font-weight:700; color:#ffd700; margin-bottom:3px; }
+.msg .time { font-size:12px; color:#aaa; text-align:right; margin-top:3px; }
+
+/* 입력 영역 */
+#inputBox { display:flex; gap:8px; }
+#msg { flex:1; padding:10px; border-radius:12px; border:none; background:#2c2c2c; color:#fff; outline:none; }
+#send { background:linear-gradient(135deg,#00ffcc,#3366ff); color:#fff; border:none; border-radius:30px; padding:12px 24px; cursor:pointer; box-shadow:0 8px 16px rgba(0,255,204,0.3); transition:0.2s; }
+#send:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,255,204,0.5); }
+
+</style>
 </head>
-
 <body>
+
+<div id="nicknameModal">
+  <h2>닉네임을 입력해주세요</h2>
+  <input id="nicknameInput" placeholder="닉네임">
+  <button id="nicknameBtn">확인</button>
+</div>
+
+<div class="container">
   <h2>🔥 서버 없는 실시간 채팅방</h2>
   <div id="chat"></div>
-
   <div id="inputBox">
     <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off">
     <button id="send">전송</button>
   </div>
+</div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
-      authDomain: "chat-6086d.firebaseapp.com",
-      databaseURL: "https://chat-6086d-default-rtdb.firebaseio.com",
-      projectId: "chat-6086d",
-      storageBucket: "chat-6086d.firebasestorage.app",
-      messagingSenderId: "1050767904189",
-      appId: "1:1050767904189:web:8f23809cbccd9c98c256d4",
-      measurementId: "G-02J04BCCS0"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    const chat = document.getElementById("chat");
-    const msg = document.getElementById("msg");
-    const send = document.getElementById("send");
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
+  authDomain: "chat-6086d.firebaseapp.com",
+  databaseURL: "https://chat-6086d-default-rtdb.firebaseio.com",
+  projectId: "chat-6086d",
+  storageBucket: "chat-6086d.firebasestorage.app",
+  messagingSenderId: "1050767904189",
+  appId: "1:1050767904189:web:8f23809cbccd9c98c256d4",
+  measurementId: "G-02J04BCCS0"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    send.onclick = () => {
-      const text = msg.value.trim();
-      if (!text) return;
-      db.ref("messages").push({ text, time: Date.now() });
-      msg.value = "";
-    };
+const chat = document.getElementById("chat");
+const msgInput = document.getElementById("msg");
+const sendBtn = document.getElementById("send");
 
-    msg.addEventListener("keypress", e => {
-      if (e.key === "Enter") send.click();
-    });
+let nickname = "";
 
-    db.ref("messages").on("value", snapshot => {
-      chat.innerHTML = "";
-      const data = snapshot.val();
-      if (!data) return;
-      const messages = Object.values(data).sort((a,b)=>a.time-b.time);
-      for(const m of messages){
-        const div = document.createElement("div");
-        div.className="msg";
-        const time=new Date(m.time).toLocaleTimeString();
-        div.innerHTML=`<div>${m.text}</div><div class="time">${time}</div>`;
-        chat.appendChild(div);
-      }
-      chat.scrollTop=chat.scrollHeight;
-    });
-  </script>
+// 닉네임 입력
+const nicknameModal = document.getElementById("nicknameModal");
+const nicknameInput = document.getElementById("nicknameInput");
+const nicknameBtn = document.getElementById("nicknameBtn");
+nicknameBtn.onclick = () => {
+  const val = nicknameInput.value.trim();
+  if(!val) return alert("닉네임을 입력하세요!");
+  nickname = val;
+  nicknameModal.style.display = "none";
+};
+
+// 메시지 전송
+sendBtn.onclick = () => {
+  const text = msgInput.value.trim();
+  if(!text || !nickname) return;
+  db.ref("messages").push({ text, nickname, time: Date.now() });
+  msgInput.value = "";
+};
+msgInput.addEventListener("keypress", e => { if(e.key==="Enter") sendBtn.click(); });
+
+// 실시간 업데이트
+db.ref("messages").on("value", snapshot=>{
+  chat.innerHTML="";
+  const data = snapshot.val();
+  if(!data) return;
+  const messages = Object.values(data).sort((a,b)=>a.time-b.time);
+  for(const m of messages){
+    const div = document.createElement("div");
+    div.className="msg";
+    const time=new Date(m.time).toLocaleTimeString();
+    div.innerHTML=`<div class="nickname">${m.nickname}</div><div>${m.text}</div><div class="time">${time}</div>`;
+    chat.appendChild(div);
+  }
+  chat.scrollTop=chat.scrollHeight;
+});
+</script>
 </body>
 </html>
