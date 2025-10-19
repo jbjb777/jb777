@@ -146,6 +146,14 @@ const imgUploadBtn = document.getElementById("imgUploadBtn");
 
 imgUploadBtn.onclick = () => imgInput.click();
 
+imgInput.onchange = () => {
+  if (imgInput.files.length > 0) {
+    imgUploadBtn.textContent = "선택됨";
+  } else {
+    imgUploadBtn.textContent = "이미지 업로드";
+  }
+};
+
 let nickname = "";
 document.getElementById("nicknameBtn").onclick = () => {
   const val = nicknameInput.value.trim();
@@ -204,6 +212,7 @@ sendBtn.onclick = async ()=>{
       alert("이미지 업로드 실패");
     }
     imgInput.value = "";
+    imgUploadBtn.textContent = "이미지 업로드";
   }
 
   db.ref("messages").push({ text: messageText, nickname, time: Date.now() });
