@@ -101,6 +101,7 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
   </div>
   <div id="inputBox">
     <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off">
+    <input type="file" id="imgInput" accept="image/*">
     <button id="send">전송</button>
   </div>
 </div>
@@ -125,8 +126,8 @@ const db = firebase.database();
 const chat = document.getElementById("chat");
 const msgInput = document.getElementById("msg");
 const sendBtn = document.getElementById("send");
+const imgInput = document.getElementById("imgInput");
 
-// 닉네임 입력
 let nickname = "";
 const nicknameModal = document.getElementById("nicknameModal");
 const nicknameInput = document.getElementById("nicknameInput");
@@ -138,29 +139,28 @@ nicknameBtn.onclick = ()=>{
   nicknameModal.style.display="none";
 };
 
-// HTML 태그 실행 방지용 escape
+// HTML Escape
 function escapeHTML(str) {
   return str.replace(/[&<>"']/g, m => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
   }[m]));
 }
 
-// 링크 자동 인식
+// 링크 자동 감지
 function linkify(text){
-  text = escapeHTML(text); // 먼저 HTML escape 처리
+  text = escapeHTML(text);
   const urlRegex = /((https?:\/\/)?[^\s]+\.(com|net|io|한국|org|mil|gov|edu|co|kr|us)(\/[^\s]*)?)/gi;
-  return text.replace(urlRegex, function(url){
-    let href = url;
-    if(!href.startsWith('http')) href='https://'+href;
+  return text.replace(urlRegex, url=>{
+    let href = url.startsWith('http') ? url : 'https://' + url;
     return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`;
   });
 }
 
-// 답장 기능
+// 답장
 let replyTo = null;
 const replyBox = document.getElementById("replyBox");
 const replyPreview = document.getElementById("replyPreview");
-function setReply(key, text, user){
+function setReply(key, text){
   replyTo = key;
   replyBox.style.display="flex";
   replyPreview.textContent = text.slice(0,10);
@@ -172,22 +172,62 @@ function clearReply(){
   replyPreview.textContent="";
 }
 
-// 전송
-sendBtn.onclick = ()=>{
+// Cloudinary 업로드 함수
+async function uploadToCloudinary(file){
+  const url = "https://api.cloudinary.com/v1_1/dretlhsrk/image/upload";
+  const preset = "unsigned_preset";
+
+  document.body.style.cursor = "wait"; // 🔄 업로드 중 커서 변경
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", preset);
+
+  const res = await fetch(url, { method: "POST", body: formData });
+  const data = await res.json();
+
+  document.body.style.cursor = "default"; // ✅ 업로드 완료 후 복원
+
+  if(data.secure_url) return data.secure_url;
+  throw new Error("업로드 실패");
+}
+
+// 전송 버튼
+sendBtn.onclick = async ()=>{
   const text = msgInput.value.trim();
-  if(!text || !nickname) return;
-  db.ref("messages").push({ text, nickname, time: Date.now(), replyTo });
+  const file = imgInput.files[0];
+  if(!nickname) return alert("닉네임을 먼저 설정하세요!");
+
+  let messageText = text;
+
+  if(file){
+    try {
+      const imageUrl = await uploadToCloudinary(file);
+      messageText += (messageText ? "\n" : "") + imageUrl;
+    } catch {
+      alert("이미지 업로드 실패");
+    }
+    imgInput.value="";
+  }
+
+  if(!messageText) return;
+
+  db.ref("messages").push({ text: messageText, nickname, time: Date.now(), replyTo });
   msgInput.value="";
   clearReply();
 };
-msgInput.addEventListener("keypress", e=>{ if(e.key==="Enter") sendBtn.click(); });
 
-// 실시간 표시
+msgInput.addEventListener("keypress", e=>{
+  if(e.key==="Enter") sendBtn.click();
+});
+
+// 실시간 채팅 업데이트
 db.ref("messages").on("value", snapshot=>{
   chat.innerHTML="";
   const data = snapshot.val();
   if(!data) return;
   const messages = Object.entries(data).sort((a,b)=>a[1].time-b[1].time);
+
   for(const [key,m] of messages){
     const div = document.createElement("div");
     div.className="msg";
@@ -201,7 +241,7 @@ db.ref("messages").on("value", snapshot=>{
     const rBtn = document.createElement("button");
     rBtn.className="replyBtn";
     rBtn.textContent="↩";
-    rBtn.onclick = ()=>setReply(key, m.text, m.nickname);
+    rBtn.onclick = ()=>setReply(key, m.text);
     div.appendChild(rBtn);
     chat.appendChild(div);
   }
