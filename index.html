@@ -3,124 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>㋡꧁정빈777꧂ - 채팅</title>
-<link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 2000 2000">
-  <defs>
-    <linearGradient id="linearGradient1" x1="1576.7" y1="1817" x2="423.3" y2="183" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="%233478f6"/>
-      <stop offset="1" stop-color="%2353b6f9"/>
-    </linearGradient>
-    <filter id="filter1" x="0" y="0" width="2000" height="2000" color-interpolation-filters="sRGB">
-      <feFlood flood-color="%23000000" flood-opacity="0.52"/>
-      <feComposite in2="SourceGraphic" operator="out"/>
-      <feGaussianBlur stdDeviation="43"/>
-      <feOffset dx="35" dy="24"/>
-      <feComposite in2="SourceGraphic" operator="atop"/>
-    </filter>
-  </defs>
-  <path fill="url(%23linearGradient1)" d="M 2000 1000 C 2000 448 1552 0 1000 0 C 448 0 0 448 0 1000 C 0 1552 448 2000 1000 2000 C 1552 2000 2000 1552 2000 1000 Z"/>
-  <path fill="%23fff" filter="url(%23filter1)" d="M 1137 506 C 1252 449 1369 497 1427 625 L 1459 696 C 1484 752 1488 821 1471 878 L 1472 877 C 1535 891 1581 939 1608 997 L 1632 1052 C 1698 1199 1657 1324 1544 1381 L 1175 1565 L 972 1114 C 1002 1241 946 1377 834 1433 L 776 1462 C 654 1523 518 1467 449 1343 L 596 1269 C 625 1309 663 1331 708 1308 L 758 1283 C 813 1256 830 1185 802 1124 L 525 509 L 672 435 L 784 683 L 1137 506 Z M 1444 1232 C 1488 1210 1504 1149 1480 1095 L 1476 1085 C 1452 1033 1397 1007 1353 1029 L 1151 1130 L 1242 1333 L 1444 1232 Z M 1184 679 L 991 775 L 1084 981 L 1276 885 C 1319 864 1336 802 1312 749 L 1306 736 C 1283 684 1226 658 1184 679 Z"/>
-</svg>' />
+<title>채팅 + Cloudinary 업로드</title>
 <style>
 body {
-  margin:0; padding:0; font-family:'Segoe UI', sans-serif;
-  background:#121212; color:#fff; display:flex; justify-content:center; align-items:center; min-height:100vh;
-}
-.container {
-  background:#1e1e1e; padding:20px; border-radius:16px;
-  box-shadow:0 0 30px rgba(0,0,0,0.6); width:90%; max-width:600px; position:relative;
-}
-h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
-#nicknameModal {
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:1000;
-  backdrop-filter: blur(5px); flex-direction:column; gap:12px;
-}
-#nicknameModal input {
-  padding:12px 20px; border-radius:12px; border:none; font-size:16px;
-  width:250px; outline:none; background:#2c2c2c; color:#fff;
-}
-#nicknameModal button {
-  padding:12px 24px; border-radius:30px; border:none; font-size:16px;
-  cursor:pointer; background:linear-gradient(135deg,#00ffcc,#3366ff); color:#fff;
-  box-shadow:0 8px 16px rgba(0,255,204,0.3); transition:0.2s;
-}
-#nicknameModal button:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,255,204,0.5); }
-#chat {
-  height:400px; overflow-y:auto; background:#121212;
-  border-radius:12px; padding:10px; margin-bottom:10px;
-  border:1px solid #444;
-}
-.msg {
-  background:linear-gradient(135deg,#00aaff,#0044ff); padding:8px 12px;
-  border-radius:12px; margin:5px 0; box-shadow:0 2px 8px rgba(0,0,0,0.5);
-  font-size:15px; color:#fff; position:relative;
-}
-.msg img {
-  max-width: 200px;
-  border-radius: 8px;
-  display: block;
-  margin-top: 5px;
-}
-.msg .nickname { font-weight:700; color:#ffd700; margin-bottom:3px; }
-.msg .time { font-size:12px; color:#aaa; text-align:right; margin-top:3px; }
-.msg .replyInfo { font-size:12px; color:#bbb; margin-bottom:3px; }
-#inputBox { display:flex; gap:8px; margin-top:5px; flex-direction:column; align-items:stretch; }
-#msg { flex:1; padding:10px; border-radius:12px; border:none; background:#2c2c2c; color:#fff; outline:none; }
-
-#imgLabel {
-  display:inline-block;
-  text-align:center;
-  background:linear-gradient(135deg,#00ffcc,#3366ff);
-  color:#fff;
-  border:none;
-  border-radius:30px;
-  padding:12px 24px;
-  cursor:pointer;
-  box-shadow:0 8px 16px rgba(0,255,204,0.3);
-  transition:0.2s;
-}
-#imgLabel:hover {
-  transform:translateY(-2px);
-  box-shadow:0 8px 16px rgba(0,255,204,0.5);
-}
-#imgInput {
-  display:none;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #dfe9f3, #ffffff);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  padding: 0;
 }
 
-#send {
-  background:linear-gradient(135deg,#00ffcc,#3366ff); color:#fff; border:none; border-radius:30px;
-  padding:12px 24px; cursor:pointer; box-shadow:0 8px 16px rgba(0,255,204,0.3); transition:0.2s;
+.chat-container {
+  width: 400px;
+  height: 500px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  overflow-y: auto;
+  padding: 10px;
 }
-#send:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,255,204,0.5); }
-</style>
-</head>
-<body>
 
-<div id="nicknameModal">
-  <h2>닉네임을 입력해주세요</h2>
-  <input id="nicknameInput" placeholder="닉네임">
-  <button id="nicknameBtn">확인</button>
-</div>
+.message {
+  max-width: 80%;
+  margin: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  word-wrap: break-word;
+  position: relative;
+}
 
-<div class="container">
-  <h2>㋡꧁정빈777꧂ 실시간 채팅</h2>
-  <div id="chat"></div>
-  <div id="inputBox">
-    <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off">
-    <label id="imgLabel" for="imgInput">이미지 업로드</label>
-    <input type="file" id="imgInput" accept="image/*">
-    <button id="send">전송</button>
-  </div>
-</div>
+.message.user {
+  background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+  align-self: flex-end;
+  text-align: right;
+  color: #000;
+}
 
-<!-- ✅ 기존 스크립트는 그대로 유지 -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script>
-/* 기존 JavaScript 그대로 */
-</script>
+.message.other {
+  background: #f1f1f1;
+  align-self: flex-start;
+  color: #000;
+}
 
-</body>
-</html>
+.reply-info {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+#input-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 400px;
+  padding: 10px;
+  background: white;
+  border-top: 1px solid #ccc;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+  border-radius: 0 0 15px 15px;
+}
+
+#messageInput {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  outline: none;
+}
+
+button {
+  margin-left: 8px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #89f7fe, #66a6ff);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+/* ✅ “이미지 업로드” 버튼만 따로 스타일 */
+#fileInputLabel {
+  display: inline-block;
+  margin-left:
