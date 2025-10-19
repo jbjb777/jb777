@@ -66,39 +66,27 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
 .msg .nickname { font-weight:700; color:#ffd700; margin-bottom:3px; }
 .msg .time { font-size:12px; color:#aaa; text-align:right; margin-top:3px; }
 .msg .replyInfo { font-size:12px; color:#bbb; margin-bottom:3px; }
-#inputBox { display:flex; gap:8px; margin-top:5px; align-items:center; }
-
-
+#inputBox { display:flex; gap:8px; margin-top:5px; flex-direction:column; }
 #msg { flex:1; padding:10px; border-radius:12px; border:none; background:#2c2c2c; color:#fff; outline:none; }
-
-
-#imgLabel {
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  width:50px; height:50px;
-  background:linear-gradient(135deg,#ff9a9e,#fad0c4);
-  color:#fff;
-  border-radius:12px;
-  cursor:pointer;
-  font-size:12px;
-  font-weight:bold;
-  box-shadow:0 4px 12px rgba(0,0,0,0.3);
-  transition:0.3s;
-  text-align:center;
-}
-#imgLabel:hover {
-  transform:scale(1.1);
-  box-shadow:0 6px 16px rgba(0,0,0,0.4);
-}
-#imgInput { display:none; }
-
-
 #send {
   background:linear-gradient(135deg,#00ffcc,#3366ff); color:#fff; border:none; border-radius:30px;
   padding:12px 24px; cursor:pointer; box-shadow:0 8px 16px rgba(0,255,204,0.3); transition:0.2s;
 }
 #send:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,255,204,0.5); }
+#replyBox {
+  display:none; width:100%; background:#2c2c2c; color:gray; padding:5px 10px;
+  border-radius:8px; font-size:13px; display:flex; align-items:center; gap:5px;
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+}
+#replyBox svg { width:12px; height:12px; transform:rotate(90deg); fill:gray; }
+.replyBtn {
+  position:absolute; top:5px; right:5px;
+  background:linear-gradient(135deg,#00ffcc,#3366ff);
+  border:none; border-radius:12px; padding:2px 6px; font-size:12px;
+  cursor:pointer; box-shadow:0 4px 8px rgba(0,255,204,0.3);
+}
+.replyBtn:hover { transform:translateY(-1px); box-shadow:0 4px 8px rgba(0,255,204,0.5); }
+.msg a { color:#00bfff; text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -112,20 +100,134 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
 <div class="container">
   <h2>㋡꧁정빈777꧂ 실시간 채팅</h2>
   <div id="chat"></div>
+  <div id="replyBox">
+    <svg viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 12l1.41 1.41L11 7.83v12.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/></svg>
+    <span id="replyPreview"></span>
+  </div>
   <div id="inputBox">
-    <label id="imgLabel" for="imgInput">파일 업로드</label>
-    <input type="file" id="imgInput" accept="image/*">
     <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off">
+    <input type="file" id="imgInput" accept="image/*">
     <button id="send">전송</button>
   </div>
 </div>
 
-
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
+  authDomain: "chat-6086d.firebaseapp.com",
+  databaseURL: "https://chat-6086d-default-rtdb.firebaseio.com",
+  projectId: "chat-6086d",
+  storageBucket: "chat-6086d.firebasestorage.app",
+  messagingSenderId: "1050767904189",
+  appId: "1:1050767904189:web:8f23809cbccd9c98c256d4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
+const chat = document.getElementById("chat");
+const msgInput = document.getElementById("msg");
+const sendBtn = document.getElementById("send");
+const imgInput = document.getElementById("imgInput");
+
+let nickname = "";
+document.getElementById("nicknameBtn").onclick = () => {
+  const val = nicknameInput.value.trim();
+  if (!val) return alert("닉네임을 입력하세요!");
+  nickname = val;
+  nicknameModal.style.display = "none";
+};
+
+// HTML Escape
+function escapeHTML(str) {
+  return str.replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+  }[m]));
+}
+
+// 링크 자동 감지
+function linkify(text){
+  text = escapeHTML(text);
+  const urlRegex = /((https?:\/\/)?[^\s]+\.(com|net|io|kr|org|co|me|us|한국)(\/[^\s]*)?)/gi;
+  return text.replace(urlRegex, url=>{
+    let href = url.startsWith('http') ? url : 'https://' + url;
+    return `<a href="${href}" target="_blank">${url}</a>`;
+  });
+}
+
+// 이미지 업로드
+async function uploadToCloudinary(file){
+  document.body.style.cursor = "wait";
+  const url = "https://api.cloudinary.com/v1_1/dretlhsrk/image/upload";
+  const preset = "unsigned_preset";
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", preset);
+
+  const res = await fetch(url, { method: "POST", body: formData });
+  const data = await res.json();
+  document.body.style.cursor = "default";
+
+  if (data.secure_url) return data.secure_url;
+  throw new Error("업로드 실패");
+}
+
+sendBtn.onclick = async ()=>{
+  const text = msgInput.value.trim();
+  const file = imgInput.files[0];
+  if (!nickname) return alert("닉네임을 먼저 설정하세요!");
+  if (!text && !file) return;
+
+  let messageText = text;
+  if (file) {
+    try {
+      const imageUrl = await uploadToCloudinary(file);
+      messageText += (messageText ? "\n" : "") + imageUrl;
+    } catch {
+      alert("이미지 업로드 실패");
+    }
+    imgInput.value = "";
+  }
+
+  db.ref("messages").push({ text: messageText, nickname, time: Date.now() });
+  msgInput.value = "";
+};
+
+db.ref("messages").on("value", snap=>{
+  chat.innerHTML = "";
+  const data = snap.val();
+  if (!data) return;
+  const arr = Object.entries(data).sort((a,b)=>a[1].time - b[1].time);
+
+  for (const [key, m] of arr) {
+    const div = document.createElement("div");
+    div.className = "msg";
+
+    // 텍스트 + 이미지 미리보기
+    const content = document.createElement("div");
+    const lines = m.text.split("\n");
+    for (const line of lines) {
+      if (line.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+        const img = document.createElement("img");
+        img.src = line.startsWith("http") ? line : "https://" + line;
+        content.appendChild(img);
+      } else {
+        const p = document.createElement("div");
+        p.innerHTML = linkify(line);
+        content.appendChild(p);
+      }
+    }
+
+    div.innerHTML = `<div class="nickname">${m.nickname}</div>`;
+    div.appendChild(content);
+    div.innerHTML += `<div class="time">${new Date(m.time).toLocaleTimeString()}</div>`;
+    chat.appendChild(div);
+  }
+  chat.scrollTop = chat.scrollHeight;
+});
 </script>
-
 </body>
 </html>
