@@ -175,6 +175,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 let replyTo = null;
 
 logoutBtn.onclick = () => {
+  localStorage.removeItem("chatNickname");
   location.reload();
 };
 
@@ -194,10 +195,23 @@ cancelReply.onclick = () => {
 };
 
 let nickname = "";
+
+// 페이지 로드 시 로컬스토리지에서 닉네임 확인
+window.addEventListener("DOMContentLoaded", () => {
+  const savedNickname = localStorage.getItem("chatNickname");
+  if (savedNickname) {
+    nickname = savedNickname;
+    nicknameModal.style.display = "none";
+    userNickname.textContent = nickname;
+    userInfo.classList.add("active");
+  }
+});
+
 document.getElementById("nicknameBtn").onclick = () => {
   const val = nicknameInput.value.trim();
   if (!val) return alert("닉네임을 입력하세요!");
   nickname = val;
+  localStorage.setItem("chatNickname", nickname);
   nicknameModal.style.display = "none";
   userNickname.textContent = nickname;
   userInfo.classList.add("active");
