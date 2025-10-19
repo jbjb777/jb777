@@ -55,7 +55,7 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
 .msg {
   background:linear-gradient(135deg,#00aaff,#0044ff); padding:8px 12px;
   border-radius:12px; margin:5px 0; box-shadow:0 2px 8px rgba(0,0,0,0.5);
-  font-size:15px; color:#fff; position:relative;
+  font-size:15px; color:#fff; position:relative; padding-right:60px;
 }
 .msg img {
   max-width: 200px;
@@ -82,16 +82,22 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
 }
 #send:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,255,204,0.5); }
 #replyBox {
-  display:none; width:100%; background:#2c2c2c; color:gray; padding:5px 10px;
-  border-radius:8px; font-size:13px; display:flex; align-items:center; gap:5px;
-  overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+  display:none; width:100%; background:#2c2c2c; color:gray; padding:8px 12px;
+  border-radius:8px; font-size:13px; align-items:center; gap:8px;
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; margin-bottom:8px;
 }
-#replyBox svg { width:12px; height:12px; transform:rotate(90deg); fill:gray; }
+#replyBox.active { display:flex; }
+#replyBox svg { width:16px; height:16px; transform:rotate(90deg); fill:gray; flex-shrink:0; }
+#replyBox span { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#cancelReply { 
+  background:none; border:none; color:gray; cursor:pointer; font-size:18px; 
+  padding:0; margin-left:auto; flex-shrink:0;
+}
 .replyBtn {
   position:absolute; top:5px; right:5px;
   background:linear-gradient(135deg,#00ffcc,#3366ff);
-  border:none; border-radius:12px; padding:2px 6px; font-size:12px;
-  cursor:pointer; box-shadow:0 4px 8px rgba(0,255,204,0.3);
+  border:none; border-radius:12px; padding:4px 8px; font-size:12px;
+  cursor:pointer; box-shadow:0 4px 8px rgba(0,255,204,0.3); color:#fff;
 }
 .replyBtn:hover { transform:translateY(-1px); box-shadow:0 4px 8px rgba(0,255,204,0.5); }
 .msg a { color:#00bfff; text-decoration:underline; }
@@ -108,11 +114,12 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
 <div class="container">
   <h2>㋡꧁정빈777꧂ 실시간 채팅</h2>
   <div id="chat"></div>
-  <div id="replyBox">
-    <svg viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 12l1.41 1.41L11 7.83v12.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/></svg>
-    <span id="replyPreview"></span>
-  </div>
   <div id="inputBox">
+    <div id="replyBox">
+      <svg viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 12l1.41 1.41L11 7.83v12.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/></svg>
+      <span id="replyPreview"></span>
+      <button id="cancelReply">×</button>
+    </div>
     <div id="inputRow">
       <button id="imgUploadBtn">이미지 업로드</button>
       <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off">
@@ -143,6 +150,11 @@ const msgInput = document.getElementById("msg");
 const sendBtn = document.getElementById("send");
 const imgInput = document.getElementById("imgInput");
 const imgUploadBtn = document.getElementById("imgUploadBtn");
+const replyBox = document.getElementById("replyBox");
+const replyPreview = document.getElementById("replyPreview");
+const cancelReply = document.getElementById("cancelReply");
+
+let replyTo = null;
 
 imgUploadBtn.onclick = () => imgInput.click();
 
@@ -154,6 +166,11 @@ imgInput.onchange = () => {
   }
 };
 
+cancelReply.onclick = () => {
+  replyTo = null;
+  replyBox.classList.remove("active");
+};
+
 let nickname = "";
 document.getElementById("nicknameBtn").onclick = () => {
   const val = nicknameInput.value.trim();
@@ -161,6 +178,12 @@ document.getElementById("nicknameBtn").onclick = () => {
   nickname = val;
   nicknameModal.style.display = "none";
 };
+
+msgInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    sendBtn.click();
+  }
+});
 
 // HTML Escape
 function escapeHTML(str) {
@@ -215,8 +238,21 @@ sendBtn.onclick = async ()=>{
     imgUploadBtn.textContent = "이미지 업로드";
   }
 
-  db.ref("messages").push({ text: messageText, nickname, time: Date.now() });
+  const messageData = { 
+    text: messageText, 
+    nickname, 
+    time: Date.now()
+  };
+
+  if (replyTo) {
+    messageData.replyTo = replyTo.nickname;
+    messageData.replyText = replyTo.text;
+  }
+
+  db.ref("messages").push(messageData);
   msgInput.value = "";
+  replyTo = null;
+  replyBox.classList.remove("active");
 };
 
 db.ref("messages").on("value", snap=>{
@@ -229,24 +265,53 @@ db.ref("messages").on("value", snap=>{
     const div = document.createElement("div");
     div.className = "msg";
 
+    const nicknameDiv = document.createElement("div");
+    nicknameDiv.className = "nickname";
+    nicknameDiv.textContent = m.nickname;
+    div.appendChild(nicknameDiv);
+
+    if (m.replyTo && m.replyText) {
+      const replyInfoDiv = document.createElement("div");
+      replyInfoDiv.className = "replyInfo";
+      replyInfoDiv.textContent = m.replyTo + "에 답장";
+      div.appendChild(replyInfoDiv);
+    }
+
     // 텍스트 + 이미지 미리보기
     const content = document.createElement("div");
     const lines = m.text.split("\n");
     for (const line of lines) {
-      if (line.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-        const img = document.createElement("img");
-        img.src = line.startsWith("http") ? line : "https://" + line;
-        content.appendChild(img);
-      } else {
-        const p = document.createElement("div");
-        p.innerHTML = linkify(line);
-        content.appendChild(p);
+      if (line.trim()) {
+        if (line.match(/https?:\/\/.*\.(jpg|jpeg|png|gif|webp)/i) || line.match(/res\.cloudinary\.com/i)) {
+          const img = document.createElement("img");
+          img.src = line;
+          content.appendChild(img);
+        } else {
+          const p = document.createElement("div");
+          p.innerHTML = linkify(line);
+          content.appendChild(p);
+        }
       }
     }
-
-    div.innerHTML = `<div class="nickname">${m.nickname}</div>`;
     div.appendChild(content);
-    div.innerHTML += `<div class="time">${new Date(m.time).toLocaleTimeString()}</div>`;
+
+    const timeDiv = document.createElement("div");
+    timeDiv.className = "time";
+    timeDiv.textContent = new Date(m.time).toLocaleTimeString();
+    div.appendChild(timeDiv);
+    
+    const replyBtn = document.createElement("button");
+    replyBtn.className = "replyBtn";
+    replyBtn.textContent = "답장";
+    replyBtn.onclick = () => {
+      replyTo = { nickname: m.nickname, text: m.text };
+      const previewText = m.text.replace(/\n/g, " ").substring(0, 10);
+      replyPreview.textContent = previewText + (m.text.length > 10 ? "..." : "");
+      replyBox.classList.add("active");
+      msgInput.focus();
+    };
+    div.appendChild(replyBtn);
+
     chat.appendChild(div);
   }
   chat.scrollTop = chat.scrollHeight;
