@@ -23,7 +23,6 @@
   <path fill="%23fff" filter="url(%23filter1)" d="M 1137 506 C 1252 449 1369 497 1427 625 L 1459 696 C 1484 752 1488 821 1471 878 L 1472 877 C 1535 891 1581 939 1608 997 L 1632 1052 C 1698 1199 1657 1324 1544 1381 L 1175 1565 L 972 1114 C 1002 1241 946 1377 834 1433 L 776 1462 C 654 1523 518 1467 449 1343 L 596 1269 C 625 1309 663 1331 708 1308 L 758 1283 C 813 1256 830 1185 802 1124 L 525 509 L 672 435 L 784 683 L 1137 506 Z M 1444 1232 C 1488 1210 1504 1149 1480 1095 L 1476 1085 C 1452 1033 1397 1007 1353 1029 L 1151 1130 L 1242 1333 L 1444 1232 Z M 1184 679 L 991 775 L 1084 981 L 1276 885 C 1319 864 1336 802 1312 749 L 1306 736 C 1283 684 1226 658 1184 679 Z"/>
 </svg>' />
 <style>
-/* === 기존 스타일 그대로 === */
 body {
   margin:0; padding:0; font-family:'Segoe UI', sans-serif;
   background:#121212; color:#fff; display:flex; justify-content:center; align-items:center; min-height:100vh;
@@ -58,6 +57,12 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
   border-radius:12px; margin:5px 0; box-shadow:0 2px 8px rgba(0,0,0,0.5);
   font-size:15px; color:#fff; position:relative;
 }
+.msg img {
+  max-width: 200px;
+  border-radius: 8px;
+  display: block;
+  margin-top: 5px;
+}
 .msg .nickname { font-weight:700; color:#ffd700; margin-bottom:3px; }
 .msg .time { font-size:12px; color:#aaa; text-align:right; margin-top:3px; }
 .msg .replyInfo { font-size:12px; color:#bbb; margin-bottom:3px; }
@@ -87,7 +92,7 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
 <body>
 
 <div id="nicknameModal">
-  <h2>여기에서 사용할 닉네임을 입력해주세요</h2>
+  <h2>닉네임을 입력해주세요</h2>
   <input id="nicknameInput" placeholder="닉네임">
   <button id="nicknameBtn">확인</button>
 </div>
@@ -117,8 +122,7 @@ const firebaseConfig = {
   projectId: "chat-6086d",
   storageBucket: "chat-6086d.firebasestorage.app",
   messagingSenderId: "1050767904189",
-  appId: "1:1050767904189:web:8f23809cbccd9c98c256d4",
-  measurementId: "G-02J04BCCS0"
+  appId: "1:1050767904189:web:8f23809cbccd9c98c256d4"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -129,14 +133,11 @@ const sendBtn = document.getElementById("send");
 const imgInput = document.getElementById("imgInput");
 
 let nickname = "";
-const nicknameModal = document.getElementById("nicknameModal");
-const nicknameInput = document.getElementById("nicknameInput");
-const nicknameBtn = document.getElementById("nicknameBtn");
-nicknameBtn.onclick = ()=>{
+document.getElementById("nicknameBtn").onclick = () => {
   const val = nicknameInput.value.trim();
-  if(!val) return alert("닉네임을 입력하세요!");
+  if (!val) return alert("닉네임을 입력하세요!");
   nickname = val;
-  nicknameModal.style.display="none";
+  nicknameModal.style.display = "none";
 };
 
 // HTML Escape
@@ -149,35 +150,18 @@ function escapeHTML(str) {
 // 링크 자동 감지
 function linkify(text){
   text = escapeHTML(text);
-  const urlRegex = /((https?:\/\/)?[^\s]+\.(com|net|io|한국|org|mil|gov|edu|co|kr|us)(\/[^\s]*)?)/gi;
+  const urlRegex = /((https?:\/\/)?[^\s]+\.(com|net|io|kr|org|co|me|us|한국)(\/[^\s]*)?)/gi;
   return text.replace(urlRegex, url=>{
     let href = url.startsWith('http') ? url : 'https://' + url;
-    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    return `<a href="${href}" target="_blank">${url}</a>`;
   });
 }
 
-// 답장
-let replyTo = null;
-const replyBox = document.getElementById("replyBox");
-const replyPreview = document.getElementById("replyPreview");
-function setReply(key, text){
-  replyTo = key;
-  replyBox.style.display="flex";
-  replyPreview.textContent = text.slice(0,10);
-  msgInput.focus();
-}
-function clearReply(){
-  replyTo=null;
-  replyBox.style.display="none";
-  replyPreview.textContent="";
-}
-
-// Cloudinary 업로드 함수
+// 이미지 업로드
 async function uploadToCloudinary(file){
+  document.body.style.cursor = "wait";
   const url = "https://api.cloudinary.com/v1_1/dretlhsrk/image/upload";
   const preset = "unsigned_preset";
-
-  document.body.style.cursor = "wait"; // 🔄 업로드 중 커서 변경
 
   const formData = new FormData();
   formData.append("file", file);
@@ -185,64 +169,61 @@ async function uploadToCloudinary(file){
 
   const res = await fetch(url, { method: "POST", body: formData });
   const data = await res.json();
+  document.body.style.cursor = "default";
 
-  document.body.style.cursor = "default"; // ✅ 업로드 완료 후 복원
-
-  if(data.secure_url) return data.secure_url;
+  if (data.secure_url) return data.secure_url;
   throw new Error("업로드 실패");
 }
 
-// 전송 버튼
 sendBtn.onclick = async ()=>{
   const text = msgInput.value.trim();
   const file = imgInput.files[0];
-  if(!nickname) return alert("닉네임을 먼저 설정하세요!");
+  if (!nickname) return alert("닉네임을 먼저 설정하세요!");
+  if (!text && !file) return;
 
   let messageText = text;
-
-  if(file){
+  if (file) {
     try {
       const imageUrl = await uploadToCloudinary(file);
       messageText += (messageText ? "\n" : "") + imageUrl;
     } catch {
       alert("이미지 업로드 실패");
     }
-    imgInput.value="";
+    imgInput.value = "";
   }
 
-  if(!messageText) return;
-
-  db.ref("messages").push({ text: messageText, nickname, time: Date.now(), replyTo });
-  msgInput.value="";
-  clearReply();
+  db.ref("messages").push({ text: messageText, nickname, time: Date.now() });
+  msgInput.value = "";
 };
 
-msgInput.addEventListener("keypress", e=>{
-  if(e.key==="Enter") sendBtn.click();
-});
+db.ref("messages").on("value", snap=>{
+  chat.innerHTML = "";
+  const data = snap.val();
+  if (!data) return;
+  const arr = Object.entries(data).sort((a,b)=>a[1].time - b[1].time);
 
-// 실시간 채팅 업데이트
-db.ref("messages").on("value", snapshot=>{
-  chat.innerHTML="";
-  const data = snapshot.val();
-  if(!data) return;
-  const messages = Object.entries(data).sort((a,b)=>a[1].time-b[1].time);
-
-  for(const [key,m] of messages){
+  for (const [key, m] of arr) {
     const div = document.createElement("div");
-    div.className="msg";
+    div.className = "msg";
 
-    let replyText = "";
-    if(m.replyTo && data[m.replyTo]){
-      replyText = `<div class="replyInfo">(${data[m.replyTo].nickname})에 답장: ${linkify(data[m.replyTo].text).slice(0,30)}</div>`;
+    // 텍스트 + 이미지 미리보기
+    const content = document.createElement("div");
+    const lines = m.text.split("\n");
+    for (const line of lines) {
+      if (line.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+        const img = document.createElement("img");
+        img.src = line.startsWith("http") ? line : "https://" + line;
+        content.appendChild(img);
+      } else {
+        const p = document.createElement("div");
+        p.innerHTML = linkify(line);
+        content.appendChild(p);
+      }
     }
 
-    div.innerHTML=`${replyText}<div class="nickname">${m.nickname}</div><div>${linkify(m.text)}</div><div class="time">${new Date(m.time).toLocaleTimeString()}</div>`;
-    const rBtn = document.createElement("button");
-    rBtn.className="replyBtn";
-    rBtn.textContent="↩";
-    rBtn.onclick = ()=>setReply(key, m.text);
-    div.appendChild(rBtn);
+    div.innerHTML = `<div class="nickname">${m.nickname}</div>`;
+    div.appendChild(content);
+    div.innerHTML += `<div class="time">${new Date(m.time).toLocaleTimeString()}</div>`;
     chat.appendChild(div);
   }
   chat.scrollTop = chat.scrollHeight;
