@@ -112,13 +112,16 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
 }
 .replyBtn:hover { transform:translateY(-1px); box-shadow:0 4px 8px rgba(0,255,204,0.5); }
 .msg a { color:#00bfff; text-decoration:underline; }
+.charCount {
+  font-size:12px; color:#aaa; text-align:right; margin-top:2px;
+}
 </style>
 </head>
 <body>
 
 <div id="nicknameModal">
   <h2>닉네임을 입력해주세요</h2>
-  <input id="nicknameInput" placeholder="닉네임">
+  <input id="nicknameInput" placeholder="닉네임" maxlength="10">
   <button id="nicknameBtn">확인</button>
 </div>
 
@@ -137,8 +140,9 @@ h2 { text-align:center; margin-bottom:15px; color:#00ffd5; }
     </div>
     <div id="inputRow">
       <button id="imgUploadBtn">이미지 업로드</button>
-      <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off">
+      <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off" maxlength="500">
     </div>
+    <div class="charCount"><span id="charCount">0</span> / 500</div>
     <input type="file" id="imgInput" accept="image/*">
     <button id="send">전송</button>
   </div>
@@ -171,8 +175,14 @@ const cancelReply = document.getElementById("cancelReply");
 const userInfo = document.getElementById("userInfo");
 const userNickname = document.getElementById("userNickname");
 const logoutBtn = document.getElementById("logoutBtn");
+const charCount = document.getElementById("charCount");
 
 let replyTo = null;
+
+// 글자 수 카운터 업데이트
+msgInput.addEventListener("input", () => {
+  charCount.textContent = msgInput.value.length;
+});
 
 logoutBtn.onclick = () => {
   localStorage.removeItem("chatNickname");
@@ -210,6 +220,7 @@ window.addEventListener("DOMContentLoaded", () => {
 document.getElementById("nicknameBtn").onclick = () => {
   const val = nicknameInput.value.trim();
   if (!val) return alert("닉네임을 입력하세요!");
+  if (val.length > 10) return alert("닉네임은 10자 이하로 입력하세요!");
   nickname = val;
   localStorage.setItem("chatNickname", nickname);
   nicknameModal.style.display = "none";
@@ -263,6 +274,7 @@ sendBtn.onclick = async ()=>{
   const file = imgInput.files[0];
   if (!nickname) return alert("닉네임을 먼저 설정하세요!");
   if (!text && !file) return;
+  if (text.length > 500) return alert("메시지는 500자 이하로 입력하세요!");
 
   let messageText = text;
   if (file) {
@@ -289,6 +301,7 @@ sendBtn.onclick = async ()=>{
 
   db.ref("messages").push(messageData);
   msgInput.value = "";
+  charCount.textContent = "0";
   replyTo = null;
   replyBox.classList.remove("active");
 };
