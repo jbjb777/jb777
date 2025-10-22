@@ -69,11 +69,18 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
   border-radius:12px; margin:5px 0; box-shadow:0 2px 8px rgba(0,0,0,0.5);
   font-size:15px; color:#fff; position:relative; padding-right:60px;
 }
+.msg.replyMessage {
+  background:linear-gradient(135deg,#0066cc,#002288);
+}
+.replyArrow {
+  position:absolute;
+  right:8px;
+  bottom:8px;
+  font-size:16px;
+  color:#99ccff;
+}
 .msg img {
-  max-width: 200px;
-  border-radius: 8px;
-  display: block;
-  margin-top: 5px;
+  max-width:200px; border-radius:8px; display:block; margin-top:5px;
 }
 .msg .nickname { font-weight:700; color:#ffffff; margin-bottom:3px; }
 .msg .time { font-size:12px; color:#aaa; text-align:right; margin-top:3px; }
@@ -101,22 +108,15 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
 #replyBox.active { display:flex; }
 #replyBox svg { width:16px; height:16px; transform:rotate(90deg); fill:gray; flex-shrink:0; }
 #replyBox span { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-#cancelReply { 
-  background:none; border:none; color:gray; cursor:pointer; font-size:18px; 
-  padding:0; margin-left:auto; flex-shrink:0;
-}
+#cancelReply { background:none; border:none; color:gray; cursor:pointer; font-size:18px; padding:0; margin-left:auto; flex-shrink:0; }
 .replyBtn {
   position:absolute; top:5px; right:5px;
-  background:#3663FF;
-  border:none; border-radius:12px; padding:4px 8px; font-size:12px;
-  cursor:pointer; color:#fff;
-  transition:transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  background:#3663FF; border:none; border-radius:12px; padding:4px 8px; font-size:12px;
+  cursor:pointer; color:#fff; transition:transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 .replyBtn:hover { transform:translateY(-4px) scale(1.05); }
 .msg a { color:#00bfff; text-decoration:underline; }
-.charCount {
-  font-size:12px; color:#aaa; text-align:right; margin-top:2px;
-}
+.charCount { font-size:12px; color:#aaa; text-align:right; margin-top:2px; }
 </style>
 </head>
 <body>
@@ -152,7 +152,6 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
@@ -181,45 +180,24 @@ const charCount = document.getElementById("charCount");
 
 let replyTo = null;
 
-// 글자 수 카운터 업데이트
-msgInput.addEventListener("input", () => {
-  charCount.textContent = msgInput.value.length;
-});
-
-logoutBtn.onclick = () => {
-  localStorage.removeItem("chatNickname");
-  location.reload();
-};
-
+// 글자 수 카운터
+msgInput.addEventListener("input", () => charCount.textContent = msgInput.value.length);
+logoutBtn.onclick = () => { localStorage.removeItem("chatNickname"); location.reload(); };
 imgUploadBtn.onclick = () => imgInput.click();
-
-imgInput.onchange = () => {
-  if (imgInput.files.length > 0) {
-    imgUploadBtn.textContent = "선택됨";
-  } else {
-    imgUploadBtn.textContent = "이미지 업로드";
-  }
-};
-
-cancelReply.onclick = () => {
-  replyTo = null;
-  replyBox.classList.remove("active");
-};
+imgInput.onchange = () => imgUploadBtn.textContent = imgInput.files.length > 0 ? "선택됨" : "이미지 업로드";
+cancelReply.onclick = () => { replyTo = null; replyBox.classList.remove("active"); };
 
 let nickname = "";
-
-// 페이지 로드 시 로컬스토리지에서 닉네임 확인
 window.addEventListener("DOMContentLoaded", () => {
-  const savedNickname = localStorage.getItem("chatNickname");
-  if (savedNickname) {
-    nickname = savedNickname;
+  const saved = localStorage.getItem("chatNickname");
+  if (saved) {
+    nickname = saved;
     nicknameModal.style.display = "none";
     userNickname.textContent = nickname;
     userInfo.classList.add("active");
   }
 });
-
-document.getElementById("nicknameBtn").onclick = () => {
+nicknameBtn.onclick = () => {
   const val = nicknameInput.value.trim();
   if (!val) return alert("닉네임을 입력하세요!");
   if (val.length > 10) return alert("닉네임은 10자 이하로 입력하세요!");
@@ -229,137 +207,98 @@ document.getElementById("nicknameBtn").onclick = () => {
   userNickname.textContent = nickname;
   userInfo.classList.add("active");
 };
+msgInput.addEventListener("keypress", e => { if (e.key === "Enter") sendBtn.click(); });
 
-msgInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    sendBtn.click();
-  }
-});
-
-// HTML Escape
 function escapeHTML(str) {
   return str.replace(/[&<>"']/g, m => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
   }[m]));
 }
-
-// 링크 자동 감지
 function linkify(text){
   text = escapeHTML(text);
-  const urlRegex = /((https?:\/\/)?[^\s]+\.(com|net|io|kr|org|co|me|us|한국)(\/[^\s]*)?)/gi;
-  return text.replace(urlRegex, url=>{
-    let href = url.startsWith('http') ? url : 'https://' + url;
+  const urlRegex=/((https?:\/\/)?[^\s]+\.(com|net|io|kr|org|co|me|us|한국|google|me|ai)(\/[^\s]*)?)/gi;
+  return text.replace(urlRegex,url=>{
+    let href=url.startsWith('http')?url:'https://'+url;
     return `<a href="${href}" target="_blank">${url}</a>`;
   });
 }
-
-// 이미지 업로드
 async function uploadToCloudinary(file){
-  document.body.style.cursor = "wait";
-  const url = "https://api.cloudinary.com/v1_1/dretlhsrk/image/upload";
-  const preset = "unsigned_preset";
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", preset);
-
-  const res = await fetch(url, { method: "POST", body: formData });
-  const data = await res.json();
-  document.body.style.cursor = "default";
-
-  if (data.secure_url) return data.secure_url;
+  document.body.style.cursor="wait";
+  const res=await fetch("https://api.cloudinary.com/v1_1/dretlhsrk/image/upload",{
+    method:"POST",
+    body:new FormData(Object.assign(new FormData(),{file,upload_preset:"unsigned_preset"}))
+  });
+  const data=await res.json(); document.body.style.cursor="default";
+  if(data.secure_url) return data.secure_url;
   throw new Error("업로드 실패");
 }
 
-sendBtn.onclick = async ()=>{
-  const text = msgInput.value.trim();
-  const file = imgInput.files[0];
-  if (!nickname) return alert("닉네임을 먼저 설정하세요!");
-  if (!text && !file) return;
-  if (text.length > 500) return alert("메시지는 500자 이하로 입력하세요!");
+sendBtn.onclick=async()=>{
+  const text=msgInput.value.trim();
+  const file=imgInput.files[0];
+  if(!nickname) return alert("닉네임을 먼저 설정하세요!");
+  if(!text && !file) return;
+  if(text.length>500) return alert("메시지는 500자 이하로 입력하세요!");
 
-  let messageText = text;
-  if (file) {
-    try {
-      const imageUrl = await uploadToCloudinary(file);
-      messageText += (messageText ? "\n" : "") + imageUrl;
-    } catch {
-      alert("이미지 업로드 실패");
-    }
-    imgInput.value = "";
-    imgUploadBtn.textContent = "이미지 업로드";
+  let messageText=text;
+  if(file){
+    try{
+      const imageUrl=await uploadToCloudinary(file);
+      messageText+=(messageText?"\n":"")+imageUrl;
+    }catch{alert("이미지 업로드 실패");}
+    imgInput.value=""; imgUploadBtn.textContent="이미지 업로드";
   }
 
-  const messageData = { 
-    text: messageText, 
-    nickname, 
-    time: Date.now()
-  };
-
-  if (replyTo) {
-    messageData.replyTo = replyTo.nickname;
-    messageData.replyText = replyTo.text;
-  }
-
-  db.ref("messages").push(messageData);
-  msgInput.value = "";
-  charCount.textContent = "0";
-  replyTo = null;
-  replyBox.classList.remove("active");
+  const data={text:messageText,nickname,time:Date.now()};
+  if(replyTo){data.replyTo=replyTo.nickname;data.replyText=replyTo.text;}
+  db.ref("messages").push(data);
+  msgInput.value=""; charCount.textContent="0"; replyTo=null; replyBox.classList.remove("active");
 };
 
-db.ref("messages").on("value", snap=>{
-  chat.innerHTML = "";
-  const data = snap.val();
-  if (!data) return;
-  const arr = Object.entries(data).sort((a,b)=>a[1].time - b[1].time);
-
-  for (const [key, m] of arr) {
-    const div = document.createElement("div");
-    div.className = "msg";
-
-    const nicknameDiv = document.createElement("div");
-    nicknameDiv.className = "nickname";
-    nicknameDiv.textContent = m.nickname;
-    div.appendChild(nicknameDiv);
-
-    if (m.replyTo && m.replyText) {
-      const replyInfoDiv = document.createElement("div");
-      replyInfoDiv.className = "replyInfo";
-      replyInfoDiv.textContent = m.replyTo + "에 답장";
-      div.appendChild(replyInfoDiv);
+db.ref("messages").on("value",snap=>{
+  chat.innerHTML="";
+  const data=snap.val(); if(!data) return;
+  const arr=Object.entries(data).sort((a,b)=>a[1].time-b[1].time);
+  for(const [key,m] of arr){
+    const div=document.createElement("div"); div.className="msg";
+    if(m.replyTo&&m.replyText){
+      div.classList.add("replyMessage");
+      const replyInfo=document.createElement("div");
+      replyInfo.className="replyInfo";
+      replyInfo.textContent=`${m.replyTo}에 답장`;
+      div.appendChild(replyInfo);
+      const arrow=document.createElement("div");
+      arrow.className="replyArrow";
+      arrow.textContent="↩️";
+      div.appendChild(arrow);
     }
+    const nick=document.createElement("div");
+    nick.className="nickname"; nick.textContent=m.nickname; div.appendChild(nick);
 
-    // 텍스트 + 이미지 미리보기
-    const content = document.createElement("div");
-    const lines = m.text.split("\n");
-    for (const line of lines) {
-      if (line.trim()) {
-        if (line.match(/https?:\/\/.*\.(jpg|jpeg|png|gif|webp)/i) || line.match(/res\.cloudinary\.com/i)) {
-          const img = document.createElement("img");
-          img.src = line;
-          content.appendChild(img);
-        } else {
-          const p = document.createElement("div");
-          p.innerHTML = linkify(line);
-          content.appendChild(p);
+    const content=document.createElement("div");
+    for(const line of m.text.split("\n")){
+      if(line.trim()){
+        if(line.match(/https?:\/\/.*\.(jpg|jpeg|png|gif|webp)/i)||line.match(/res\.cloudinary\.com/i)){
+          const img=document.createElement("img"); img.src=line; content.appendChild(img);
+        }else{
+          const p=document.createElement("div"); p.innerHTML=linkify(line); content.appendChild(p);
         }
       }
     }
     div.appendChild(content);
 
-    const timeDiv = document.createElement("div");
-    timeDiv.className = "time";
-    timeDiv.textContent = new Date(m.time).toLocaleTimeString();
-    div.appendChild(timeDiv);
-    
-    const replyBtn = document.createElement("button");
-    replyBtn.className = "replyBtn";
-    replyBtn.textContent = "답장";
-    replyBtn.onclick = () => {
-      replyTo = { nickname: m.nickname, text: m.text };
-      const previewText = m.text.replace(/\n/g, " ").substring(0, 10);
-      replyPreview.textContent = previewText + (m.text.length > 10 ? "..." : "");
+    const time=document.createElement("div");
+    time.className="time";
+    time.textContent=new Date(m.time).toLocaleTimeString();
+    div.appendChild(time);
+
+    const replyBtn=document.createElement("button");
+    replyBtn.className="replyBtn";
+    replyBtn.textContent="답장";
+    replyBtn.onclick=()=>{
+      replyTo={nickname:m.nickname,text:m.text};
+      const previewText=m.text.replace(/\n/g," ").substring(0,10);
+      replyPreview.textContent=previewText+(m.text.length>10?"...":"");
       replyBox.classList.add("active");
       msgInput.focus();
     };
@@ -367,7 +306,7 @@ db.ref("messages").on("value", snap=>{
 
     chat.appendChild(div);
   }
-  chat.scrollTop = chat.scrollHeight;
+  chat.scrollTop=chat.scrollHeight;
 });
 </script>
 </body>
