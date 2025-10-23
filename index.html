@@ -122,7 +122,7 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
 <body>
 
 <div id="nicknameModal">
-  <h2>여기에서 사용할 닉네임을 입력해주세요</h2>
+  <h2>✏️ 여기에서 사용할 닉네임을 입력해주세요</h2>
   <input id="nicknameInput" placeholder="닉네임" maxlength="10">
   <button id="nicknameBtn">확인</button>
 </div>
@@ -141,12 +141,12 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
       <button id="cancelReply">×</button>
     </div>
     <div id="inputRow">
-      <button id="imgUploadBtn">이미지 업로드</button>
+      <button id="imgUploadBtn">🖼️ 이미지 업로드</button>
       <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off" maxlength="500">
     </div>
     <div class="charCount"><span id="charCount">0</span> / 500</div>
     <input type="file" id="imgInput" accept="image/*">
-    <button id="send">전송</button>
+    <button id="send">💬 전송</button>
   </div>
 </div>
 
@@ -223,7 +223,7 @@ function linkify(text){
   });
 }
 async function uploadToCloudinary(file){
-  // Fixed: create FormData properly and append fields
+
   const fd = new FormData();
   fd.append("file", file);
   fd.append("upload_preset", "unsigned_preset");
@@ -235,7 +235,7 @@ async function uploadToCloudinary(file){
       body: fd
     });
 
-    // handle non-OK http responses
+
     if (!res.ok) {
       let txt;
       try { txt = await res.text(); } catch(e){ txt = res.statusText; }
@@ -322,7 +322,7 @@ db.ref("messages").on("value",snap=>{
 
     const replyBtn=document.createElement("button");
     replyBtn.className="replyBtn";
-    replyBtn.textContent="답장";
+    replyBtn.textContent="↩️ 답장";
     replyBtn.onclick=()=>{
       replyTo={nickname:m.nickname,text:m.text};
       const previewText=m.text.replace(/\n/g," ").substring(0,10);
