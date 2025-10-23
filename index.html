@@ -146,7 +146,7 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
     </div>
     <div class="charCount"><span id="charCount">0</span> / 500</div>
     <input type="file" id="imgInput" accept="image/*">
-    <button id="send">전송</button>
+    <button id="send">💬 전송</button>
   </div>
 </div>
 
@@ -246,7 +246,7 @@ sendBtn.onclick=async()=>{
       const imageUrl=await uploadToCloudinary(file);
       messageText+=(messageText?"\n":"")+imageUrl;
     }catch{alert("이미지 업로드 실패");}
-    imgInput.value=""; imgUploadBtn.textContent="이미지 업로드";
+    imgInput.value=""; imgUploadBtn.textContent="🖼️ 이미지 업로드";
   }
 
   const data={text:messageText,nickname,time:Date.now()};
@@ -294,7 +294,7 @@ db.ref("messages").on("value",snap=>{
 
     const replyBtn=document.createElement("button");
     replyBtn.className="replyBtn";
-    replyBtn.textContent="답장";
+    replyBtn.textContent="↩️ 답장";
     replyBtn.onclick=()=>{
       replyTo={nickname:m.nickname,text:m.text};
       const previewText=m.text.replace(/\n/g," ").substring(0,10);
