@@ -146,7 +146,7 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
     </div>
     <div class="charCount"><span id="charCount">0</span> / 500</div>
     <input type="file" id="imgInput" accept="image/*">
-    <button id="send">💬 전송</button>
+    <button id="send">전송</button>
   </div>
 </div>
 
@@ -216,21 +216,44 @@ function escapeHTML(str) {
 }
 function linkify(text){
   text = escapeHTML(text);
-  const urlRegex=/((https?:\/\/)?[^\s]+\.(com|net|io|kr|org|co|me|us|한국|google|me|ai)(\/[^\s]*)?)/gi;
+  const urlRegex=/((https?:\/\/)?[^\s]+\.(com|net|io|kr|org|co|me|us|한국|google|ai|me)(\/[^\s]*)?)/gi;
   return text.replace(urlRegex,url=>{
     let href=url.startsWith('http')?url:'https://'+url;
     return `<a href="${href}" target="_blank">${url}</a>`;
   });
 }
 async function uploadToCloudinary(file){
+  // Fixed: create FormData properly and append fields
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", "unsigned_preset");
+
   document.body.style.cursor="wait";
-  const res=await fetch("https://api.cloudinary.com/v1_1/dretlhsrk/image/upload",{
-    method:"POST",
-    body:new FormData(Object.assign(new FormData(),{file,upload_preset:"unsigned_preset"}))
-  });
-  const data=await res.json(); document.body.style.cursor="default";
-  if(data.secure_url) return data.secure_url;
-  throw new Error("업로드 실패");
+  try {
+    const res = await fetch("https://api.cloudinary.com/v1_1/dretlhsrk/image/upload", {
+      method: "POST",
+      body: fd
+    });
+
+    // handle non-OK http responses
+    if (!res.ok) {
+      let txt;
+      try { txt = await res.text(); } catch(e){ txt = res.statusText; }
+      throw new Error("Cloudinary 업로드 실패: " + res.status + " " + txt);
+    }
+
+    const data = await res.json();
+    document.body.style.cursor="default";
+
+    if (data && data.secure_url) return data.secure_url;
+    // Cloudinary may return an error object
+    const errMsg = data && data.error && data.error.message ? data.error.message : "업로드 실패(응답에 secure_url 없음)";
+    throw new Error(errMsg);
+  } catch (err) {
+    document.body.style.cursor="default";
+    console.error("uploadToCloudinary error:", err);
+    throw err;
+  }
 }
 
 sendBtn.onclick=async()=>{
@@ -245,8 +268,13 @@ sendBtn.onclick=async()=>{
     try{
       const imageUrl=await uploadToCloudinary(file);
       messageText+=(messageText?"\n":"")+imageUrl;
-    }catch{alert("이미지 업로드 실패");}
-    imgInput.value=""; imgUploadBtn.textContent="🖼️ 이미지 업로드";
+    }catch(err){
+      alert("이미지 업로드 실패: " + (err.message || ""));
+      console.error(err);
+      // keep imgInput value so user can retry
+      return;
+    }
+    imgInput.value=""; imgUploadBtn.textContent="이미지 업로드";
   }
 
   const data={text:messageText,nickname,time:Date.now()};
@@ -294,7 +322,7 @@ db.ref("messages").on("value",snap=>{
 
     const replyBtn=document.createElement("button");
     replyBtn.className="replyBtn";
-    replyBtn.textContent="↩️ 답장";
+    replyBtn.textContent="답장";
     replyBtn.onclick=()=>{
       replyTo={nickname:m.nickname,text:m.text};
       const previewText=m.text.replace(/\n/g," ").substring(0,10);
