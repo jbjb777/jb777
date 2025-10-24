@@ -216,7 +216,7 @@ function escapeHTML(str) {
 }
 function linkify(text){
   text = escapeHTML(text);
-  const urlRegex=/((https?:\/\/)?[^\s]+\.(com|net|io|kr|org|co|me|us|한국|google|ai|me)(\/[^\s]*)?)/gi;
+  const urlRegex=/((https?:\/\/)?[^\s]+\.(com|net|io|kr|org|co|me|us|한국|google|ai|me|cc)(\/[^\s]*)?)/gi;
   return text.replace(urlRegex,url=>{
     let href=url.startsWith('http')?url:'https://'+url;
     return `<a href="${href}" target="_blank">${url}</a>`;
