@@ -52,7 +52,15 @@
     .logo {
       font-size: 22px;
       font-weight: bold;
-      color: #00ffd5;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo img {
+      width: 40px;
+      height: 40px;
     }
 
     nav {
@@ -102,11 +110,15 @@
 
 <body>
   <header>
-    <div class="logo">㋡꧁정빈777꧂</div>
+    <div class="logo">
+      <img src="logo.svg" alt="Logo">
+      ㋡꧁정빈777꧂
+    </div>
     <nav>
       <button class="top-button" id="openLinkBtn1">마이페이지</button>
       <button class="top-button" id="openLinkBtn2">GIF → SVG 변환기</button>
       <button class="top-button" id="openLinkBtn3">엔트리위키 조회</button>
+      <button class="top-button" id="imgBtn">🖼️ 이미지 공유하기</button>
       <button class="top-button" id="chatBtn">💬 채팅</button>
     </nav>
   </header>
@@ -121,11 +133,15 @@
     });
 
     document.getElementById('openLinkBtn2').addEventListener('click', () => {
-      window.location.href = 'http://gif.r-e.kr';
+      window.location.href = 'gifsvg.html';
     });
 
     document.getElementById('openLinkBtn3').addEventListener('click', () => {
       window.location.href = 'https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82';
+    });
+
+    document.getElementById('imgBtn').addEventListener('click', () => {
+      window.location.href = 'img.html';
     });
 
     document.getElementById('chatBtn').addEventListener('click', () => {
