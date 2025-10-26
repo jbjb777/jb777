@@ -1,0 +1,61 @@
+/* 상단 헤더 스타일 */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px;
+  background-color: #1e1e1e;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo img {
+  width: 40px;
+  height: 40px;
+}
+
+nav {
+  display: flex;
+  gap: 20px;
+}
+
+.top-button {
+  background: #3663FF;
+  color: #fff;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  white-space: nowrap;
+}
+
+.top-button:hover {
+  transform: translateY(-8px) scale(1.05);
+}
+
+.top-button:active {
+  background: #2952CC;
+}
+
+@media (max-width: 800px) {
+  nav {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .top-button {
+    width: 100%;
+  }
+}
