@@ -64,15 +64,28 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
 #chat {
   height:400px; overflow-y:auto; background:#121212;
   border-radius:12px; padding:10px; margin-bottom:10px;
-  border:1px solid #444;
+  border:1px solid #444; scroll-behavior:smooth;
 }
 .msg {
   background:linear-gradient(135deg,#00aaff,#0044ff); padding:8px 12px;
   border-radius:12px; margin:5px 0; box-shadow:0 2px 8px rgba(0,0,0,0.5);
   font-size:15px; color:#fff; position:relative; padding-right:60px;
+  transition:box-shadow 0.3s ease;
 }
 .msg.replyMessage {
   background:linear-gradient(135deg,#0066cc,#002288);
+  cursor:pointer;
+}
+.msg.replyMessage:hover {
+  box-shadow:0 4px 16px rgba(0,150,255,0.6);
+}
+.msg.highlight {
+  box-shadow:0 0 20px rgba(255,215,0,0.8);
+  animation:highlightPulse 1s ease-in-out;
+}
+@keyframes highlightPulse {
+  0%, 100% { box-shadow:0 0 20px rgba(255,215,0,0.8); }
+  50% { box-shadow:0 0 30px rgba(255,215,0,1); }
 }
 .replyArrow {
   position:absolute;
@@ -188,6 +201,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 const charCount = document.getElementById("charCount");
 
 let replyTo = null;
+const messageElements = new Map();
 
 // 글자 수 카운터
 msgInput.addEventListener("input", () => charCount.textContent = msgInput.value.length);
@@ -307,12 +321,34 @@ sendBtn.onclick=async()=>{
 
 db.ref("messages").on("value",snap=>{
   chat.innerHTML="";
+  messageElements.clear();
   const data=snap.val(); if(!data) return;
   const arr=Object.entries(data).sort((a,b)=>a[1].time-b[1].time);
   for(const [key,m] of arr){
     const div=document.createElement("div"); div.className="msg";
+    div.dataset.messageKey = key;
+    div.dataset.nickname = m.nickname;
+    div.dataset.time = m.time;
+    
     if(m.replyTo&&m.replyText){
       div.classList.add("replyMessage");
+      div.dataset.replyTo = m.replyTo;
+      
+      div.onclick = () => {
+        for(const [otherKey, otherMsg] of messageElements){
+          const otherElem = otherMsg;
+          const otherData = data[otherKey];
+          if(otherElem.dataset.nickname === m.replyTo && 
+             otherData.text === m.replyText &&
+             parseInt(otherElem.dataset.time) < m.time){
+            otherElem.scrollIntoView({behavior:'smooth', block:'center'});
+            otherElem.classList.add('highlight');
+            setTimeout(() => otherElem.classList.remove('highlight'), 1000);
+            break;
+          }
+        }
+      };
+      
       const replyInfo=document.createElement("div");
       replyInfo.className="replyInfo";
       replyInfo.textContent=`${m.replyTo}에 답장`;
@@ -345,7 +381,8 @@ db.ref("messages").on("value",snap=>{
     const replyBtn=document.createElement("button");
     replyBtn.className="replyBtn";
     replyBtn.textContent="↩️ 답장";
-    replyBtn.onclick=()=>{
+    replyBtn.onclick=(e)=>{
+      e.stopPropagation();
       replyTo={nickname:m.nickname,text:m.text};
       const previewText=m.text.replace(/\n/g," ").substring(0,10);
       replyPreview.textContent=previewText+(m.text.length>10?"...":"");
@@ -355,6 +392,7 @@ db.ref("messages").on("value",snap=>{
     div.appendChild(replyBtn);
 
     chat.appendChild(div);
+    messageElements.set(key, div);
   }
   chat.scrollTop=chat.scrollHeight;
 });
