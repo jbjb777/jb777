@@ -22,11 +22,17 @@
   <path fill="url(%23linearGradient1)" d="M 2000 1000 C 2000 448 1552 0 1000 0 C 448 0 0 448 0 1000 C 0 1552 448 2000 1000 2000 C 1552 2000 2000 1552 2000 1000 Z"/>
   <path fill="%23fff" filter="url(%23filter1)" d="M 1137 506 C 1252 449 1369 497 1427 625 L 1459 696 C 1484 752 1488 821 1471 878 L 1472 877 C 1535 891 1581 939 1608 997 L 1632 1052 C 1698 1199 1657 1324 1544 1381 L 1175 1565 L 972 1114 C 1002 1241 946 1377 834 1433 L 776 1462 C 654 1523 518 1467 449 1343 L 596 1269 C 625 1309 663 1331 708 1308 L 758 1283 C 813 1256 830 1185 802 1124 L 525 509 L 672 435 L 784 683 L 1137 506 Z M 1444 1232 C 1488 1210 1504 1149 1480 1095 L 1476 1085 C 1452 1033 1397 1007 1353 1029 L 1151 1130 L 1242 1333 L 1444 1232 Z M 1184 679 L 991 775 L 1084 981 L 1276 885 C 1319 864 1336 802 1312 749 L 1306 736 C 1283 684 1226 658 1184 679 Z"/>
 </svg>' />
-<style>
 
+<!-- 공통 헤더 CSS -->
+<link rel="stylesheet" href="header.css">
+
+<style>
 body {
   margin:0; padding:0; font-family:'Segoe UI', sans-serif;
-  background:#121212; color:#fff; display:flex; justify-content:center; align-items:center; min-height:100vh;
+  background:#121212; color:#fff; display:flex; flex-direction:column; min-height:100vh;
+}
+.chat-wrapper {
+  display:flex; justify-content:center; align-items:center; flex:1; padding:20px;
 }
 .container {
   background:#1e1e1e; padding:20px; border-radius:16px;
@@ -144,34 +150,42 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
 </head>
 <body>
 
+<!-- 헤더 컨테이너 -->
+<div id="header-container"></div>
+
 <div id="nicknameModal">
   <h2>✏️ 여기에서 사용할 닉네임을 입력해주세요</h2>
   <input id="nicknameInput" placeholder="닉네임" maxlength="10">
   <button id="nicknameBtn">확인</button>
 </div>
 
-<div class="container">
-  <div id="userInfo">
-    <span id="userNickname"></span>
-    <button id="logoutBtn">로그아웃</button>
-  </div>
-  <h2>㋡꧁정빈777꧂ 실시간 채팅</h2>
-  <div id="chat"></div>
-  <div id="inputBox">
-    <div id="replyBox">
-      <svg viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 12l1.41 1.41L11 7.83v12.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/></svg>
-      <span id="replyPreview"></span>
-      <button id="cancelReply">×</button>
+<div class="chat-wrapper">
+  <div class="container">
+    <div id="userInfo">
+      <span id="userNickname"></span>
+      <button id="logoutBtn">로그아웃</button>
     </div>
-    <div id="inputRow">
-      <button id="imgUploadBtn">🖼️ 이미지 업로드</button>
-      <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off" maxlength="500">
+    <h2>㋡꧁정빈777꧂ 실시간 채팅</h2>
+    <div id="chat"></div>
+    <div id="inputBox">
+      <div id="replyBox">
+        <svg viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 12l1.41 1.41L11 7.83v12.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/></svg>
+        <span id="replyPreview"></span>
+        <button id="cancelReply">×</button>
+      </div>
+      <div id="inputRow">
+        <button id="imgUploadBtn">🖼️ 이미지 업로드</button>
+        <input id="msg" placeholder="메시지를 입력하세요" autocomplete="off" maxlength="500">
+      </div>
+      <div class="charCount"><span id="charCount">0</span> / 500</div>
+      <input type="file" id="imgInput" accept="image/*">
+      <button id="send">💬 전송</button>
     </div>
-    <div class="charCount"><span id="charCount">0</span> / 500</div>
-    <input type="file" id="imgInput" accept="image/*">
-    <button id="send">💬 전송</button>
   </div>
 </div>
+
+<!-- 공통 헤더 JavaScript -->
+<script src="header.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
