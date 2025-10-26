@@ -32,7 +32,7 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #121212;
+      background: #121212;
       color: #ffffff;
     }
 
@@ -61,20 +61,23 @@
     }
 
     .top-button {
-      background: linear-gradient(135deg, #00ffcc, #3366ff);
+      background: #3663FF;
       color: #fff;
       padding: 12px 24px;
       border: none;
       border-radius: 30px;
       cursor: pointer;
       font-size: 16px;
-      transition: transform 0.2s ease, box-shadow 0.3s;
+      transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
       white-space: nowrap;
     }
 
     .top-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(0, 255, 204, 0.3);
+      transform: translateY(-8px) scale(1.05);
+    }
+
+    .top-button:active {
+      background: #2952CC;
     }
 
     main {
