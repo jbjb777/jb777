@@ -5,6 +5,11 @@ function loadHeader() {
     .then(data => {
       document.getElementById('header-container').innerHTML = data;
       
+      // 로고 클릭 시 홈으로 이동
+      document.getElementById('logoLink').addEventListener('click', () => {
+        window.location.href = 'index.html';
+      });
+      
       // 버튼 이벤트 리스너 추가
       document.getElementById('openLinkBtn1').addEventListener('click', () => {
         window.open('https://naver.me/xAWjFEtu', '_blank');
