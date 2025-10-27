@@ -37,15 +37,18 @@
     .slides {
       display: flex;
       width: 400%;
-      animation: slide 4s infinite;
+      animation: slide 8s infinite ease-in-out; 
     }
 
-    .slides img {
-      max-width: 100%;
-      max-height: 120%; /* ✅ 높이도 초과 금지 */
-      object-fit: contain; /* ✅ 확대 없이 비율 유지 */
-      flex-shrink: 0;
+    
+    @keyframes slide {
+      0%, 12.5% { transform: translateX(0%); }      
+      25%, 37.5% { transform: translateX(-100%); }   
+      50%, 62.5% { transform: translateX(-200%); }   
+      75%, 87.5% { transform: translateX(-300%); }  
+      100% { transform: translateX(0%); }           
     }
+
 
 
     @keyframes slide {
