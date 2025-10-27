@@ -24,11 +24,31 @@
 </svg>' />
 
   <style>
-    .main-banner {
+     .slider {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .slides {
+      display: flex;
+      width: 400%;
+      animation: slide 1s infinite;
+    }
+
+    .slides img {
       width: 100%;
       height: auto;
-      display: block;
+      flex-shrink: 0;
     }
+
+    @keyframes slide {
+      0% { transform: translateX(0%); }
+      25% { transform: translateX(-100%); }
+      50% { transform: translateX(-200%); }
+      75% { transform: translateX(-300%); }
+      100% { transform: translateX(0%); }
+    }
+
 
     * {
       box-sizing: border-box;
@@ -131,7 +151,16 @@
 
   <main>
 
-  <img src="chat.png" alt="메인 배너" class="main-banner">
+    <div class="slider">
+      <div class="slides">
+        <img src="home.png" alt="home">
+        <img src="chat.png" alt="chat">
+        <img src="gifsvg.png" alt="gifsvg">
+        <img src="wiki.png" alt="wiki">
+      </div>
+    </div>
+
+
   </main>
 
   <script>
