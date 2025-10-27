@@ -26,28 +26,37 @@
   <style>
     .slider {
       width: 100%;
-      height: 400px; /* ✅ 배너 높이 제한 (원하면 변경 가능) */
+      height: 300px; /* 🔧 원하는 높이로 조정 가능 */
       overflow: hidden;
-      background: #000; /* ✅ 이미지보다 좁으면 검정 배경 */
+      background: #000;
       display: flex;
       justify-content: center;
       align-items: center;
     }
-
+    
     .slides {
       display: flex;
-      width: 400%;
-      animation: slide 8s infinite ease-in-out; 
+      width: 400%; /* 4장의 이미지 */
+      height: 100%;
+      animation: slide 8s infinite ease-in-out;
+    }
+    
+    .slides img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* ✅ 비율 유지, 확대X */
+      flex: 0 0 100%; /* ✅ 각 이미지가 전체 화면 너비 차지 */
+    }
+    
+    /* ✅ 1초 정지 포함 슬라이드 */
+    @keyframes slide {
+      0%, 12.5% { transform: translateX(0%); }       /* 첫 이미지 정지 */
+      25%, 37.5% { transform: translateX(-100%); }   /* 두 번째 정지 */
+      50%, 62.5% { transform: translateX(-200%); }   /* 세 번째 정지 */
+      75%, 87.5% { transform: translateX(-300%); }   /* 네 번째 정지 */
+      100% { transform: translateX(0%); }            /* 다시 처음 */
     }
 
-    
-    @keyframes slide {
-      0%, 12.5% { transform: translateX(0%); }      
-      25%, 37.5% { transform: translateX(-100%); }   
-      50%, 62.5% { transform: translateX(-200%); }   
-      75%, 87.5% { transform: translateX(-300%); }  
-      100% { transform: translateX(0%); }           
-    }
 
 
 
