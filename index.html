@@ -24,24 +24,24 @@
 </svg>' />
 
   <style>
-     .slider {
+    .slider {
       width: 100%;
-      height: 300px; 
       overflow: hidden;
     }
 
     .slides {
       display: flex;
       width: 400%;
-      animation: slide 1s infinite;
+      animation: slide 4s infinite;
     }
 
     .slides img {
       width: 100%;
-      height: 100%; /* ✅ container 높이에 맞춤 */
-      object-fit: cover; /* ✅ 비율 유지 + 배너 느낌 */
+      height: auto; /* ✅ 원본 비율 유지 */
       flex-shrink: 0;
+      object-fit: contain; /* ✅ 이미지 확대/잘림 방지 */
     }
+
 
     @keyframes slide {
       0% { transform: translateX(0%); }
