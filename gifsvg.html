@@ -23,8 +23,9 @@
   <path fill="url(%23linearGradient1)" d="M 2000 1000 C 2000 448 1552 0 1000 0 C 448 0 0 448 0 1000 C 0 1552 448 2000 1000 2000 C 1552 2000 2000 1552 2000 1000 Z"/>
   <path fill="%23fff" filter="url(%23filter1)" d="M 1137 506 C 1252 449 1369 497 1427 625 L 1459 696 C 1484 752 1488 821 1471 878 L 1472 877 C 1535 891 1581 939 1608 997 L 1632 1052 C 1698 1199 1657 1324 1544 1381 L 1175 1565 L 972 1114 C 1002 1241 946 1377 834 1433 L 776 1462 C 654 1523 518 1467 449 1343 L 596 1269 C 625 1309 663 1331 708 1308 L 758 1283 C 813 1256 830 1185 802 1124 L 525 509 L 672 435 L 784 683 L 1137 506 Z M 1444 1232 C 1488 1210 1504 1149 1480 1095 L 1476 1085 C 1452 1033 1397 1007 1353 1029 L 1151 1130 L 1242 1333 L 1444 1232 Z M 1184 679 L 991 775 L 1084 981 L 1276 885 C 1319 864 1336 802 1312 749 L 1306 736 C 1283 684 1226 658 1184 679 Z"/>
 </svg>' />
-  <link rel="stylesheet" href="header.css">
 
+  <!-- 공통 헤더 CSS -->
+  <link rel="stylesheet" href="header.css">
 
   <style>
     * {
@@ -38,30 +39,33 @@
       background-color: #121212;
       color: #ffffff;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
       min-height: 100vh;
     }
 
-    /* === 수정된 컨테이너 스타일 === */
+    .content-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+      padding: 20px;
+    }
+
     .container {
       background-color: #1e1e1e;
       padding: 30px 20px;
       border-radius: 16px;
       box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
       text-align: center;
-      width: 100%;           /* 화면 가득 너비 */
-      max-width: 1200px;     /* 너무 크지 않게 제한 */
-      min-height: 80vh;      /* 화면 높이 대부분 차지 */
-      margin: 20px auto;     /* 상하 여백, 좌우 중앙 */
+      width: 100%;
+      max-width: 1200px;
       animation: fadeIn 0.8s ease-out;
-      position: relative;     /* 내부 절대위치 기준 */
     }
 
     h2 {
       margin-bottom: 20px;
       font-size: 22px;
-      color: #00ffd5;
+      color: #ffffff;
     }
 
     #dropArea {
@@ -92,7 +96,7 @@
     }
 
     button {
-      background: linear-gradient(135deg, #00ffcc, #3366ff);
+      background: #3663FF;
       color: #fff;
       padding: 12px 24px;
       margin: 10px 5px;
@@ -100,13 +104,16 @@
       border-radius: 30px;
       cursor: pointer;
       font-size: 16px;
-      transition: transform 0.2s ease, box-shadow 0.3s;
+      transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
       width: 100%;
     }
 
     button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(0, 255, 204, 0.3);
+      transform: translateY(-8px) scale(1.05);
+    }
+
+    button:active {
+      background: #2952CC;
     }
 
     @keyframes fadeIn {
@@ -127,10 +134,12 @@
 
     .download-type {
       margin: 10px 0;
+      color: #ffffff;
     }
 
     .download-type label {
       margin-right: 10px;
+      color: #ffffff;
     }
 
     #frameCountInput {
@@ -145,80 +154,59 @@
       text-align: center;
     }
 
-    /* === 나가기 버튼 === */
-    #exitBtn {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      padding: 0;
-      font-size: 20px;
-      line-height: 36px;
-      text-align: center;
-      background: linear-gradient(135deg, #00ffcc, #3366ff);
-      color: white;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 8px 16px rgba(0, 255, 204, 0.3);
-      transition: transform 0.2s ease, box-shadow 0.3s;
-      z-index: 10;
-    }
-
-    #exitBtn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(0, 255, 204, 0.5);
+    label[for="frameCountInput"] {
+      display: block;
+      color: #ffffff;
+      font-weight: bold;
     }
   </style>
 </head>
 
 <body>
+  <!-- 헤더 컨테이너 -->
   <div id="header-container"></div>
-  <div class="container">
-    <button id="exitBtn" title="나가기">×</button>
 
-    <h2>GIF → SVG 변환기<br />by ㋡꧁정빈777꧂</h2>
+  <div class="content-wrapper">
+    <div class="container">
+      <h2>GIF → SVG 변환기<br />by ㋡꧁정빈777꧂</h2>
 
-    <div id="dropArea">
-      <p>여기에 GIF 파일을 드래그하거나 클릭해서 선택하세요</p>
-      <input type="file" id="gifInput" accept="image/gif" />
-    </div>
+      <div id="dropArea">
+        <p>여기에 GIF 파일을 드래그하거나 클릭해서 선택하세요</p>
+        <input type="file" id="gifInput" accept="image/gif" />
+      </div>
 
-    <img id="gifPreview" src="" alt="GIF 미리보기" style="display: none;" />
+      <img id="gifPreview" src="" alt="GIF 미리보기" style="display: none;" />
 
-    <div class="download-type">
-      <label>
-        <input type="radio" name="downloadFormat" value="svg" checked />
-        SVG로 저장
+      <div class="download-type">
+        <label>
+          <input type="radio" name="downloadFormat" value="svg" checked />
+          SVG로 저장
+        </label>
+        <label>
+          <input type="radio" name="downloadFormat" value="zip" />
+          ZIP으로 압축 저장
+        </label>
+      </div>
+
+      <label for="frameCountInput">
+        프레임 수 선택 (키보드 숫자키로 입력 가능)
       </label>
-      <label>
-        <input type="radio" name="downloadFormat" value="zip" />
-        ZIP으로 압축 저장
-      </label>
+      <input type="number" id="frameCountInput" min="1" max="1000" value="1" />
+
+      <button id="convertBtn">SVG 애니메이션 저장</button>
+      <button id="openLinkBtn">Made by ㋡정빈777</button>
     </div>
-
-    <label for="frameCountInput" style="display:block; color:#00ffd5; font-weight:bold;">
-      프레임 수 선택 (키보드 숫자키로 입력 가능)
-    </label>
-    <input type="number" id="frameCountInput" min="1" max="1000" value="1" />
-
-    <button id="convertBtn">SVG 애니메이션 저장</button>
-    <button id="openLinkBtn">Made by ㋡정빈777</button>
   </div>
 
-  <!-- JSZip CDN -->
+  <!-- 공통 헤더 JavaScript -->
   <script src="header.js"></script>
+
+  <!-- JSZip CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <!-- gifuct-js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/gifuct-js@1.0.2/dist/gifuct.min.js"></script>
 
   <script>
-    // 나가기 버튼 클릭 시 이동
-    document.getElementById('exitBtn').addEventListener('click', () => {
-      window.location.href = "http://jbjb.r-e.kr";
-    });
-
     const gifInput = document.getElementById('gifInput');
     const gifPreview = document.getElementById('gifPreview');
     const dropArea = document.getElementById('dropArea');
@@ -239,7 +227,7 @@
 
     dropArea.addEventListener('dragover', (e) => {
       e.preventDefault();
-      dropArea.style.borderColor = '#00ffd5';
+      dropArea.style.borderColor = '#3663FF';
     });
 
     dropArea.addEventListener('dragleave', (e) => {
@@ -338,19 +326,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
