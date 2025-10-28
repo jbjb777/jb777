@@ -105,6 +105,12 @@
       width: 400%; /* 4장의 이미지 */
       height: 100%;
       animation: slide 16s infinite ease-in-out;
+      transition: transform 0.3s ease-out;
+    }
+    
+    .slides.dragging {
+      animation: none;
+      transition: none;
     }
     
     .slides img {
@@ -196,21 +202,119 @@
       window.location.href = 'chat.html';
     });
 
+    // 스와이프 기능
+    const slider = document.querySelector('.slider');
+    const slides = document.querySelector('.slides');
+    let currentIndex = 0;
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+    let startTime = 0;
+
+    function goToSlide(index) {
+      currentIndex = Math.max(0, Math.min(3, index));
+      slides.style.transform = `translateX(-${currentIndex * 25}%)`;
+    }
+
+    // 마우스 이벤트
+    slider.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      startTime = Date.now();
+      slides.classList.add('dragging');
+    });
+
+    slider.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      currentX = e.clientX;
+      const diff = currentX - startX;
+      const percentage = (diff / slider.offsetWidth) * 25;
+      slides.style.transform = `translateX(calc(-${currentIndex * 25}% + ${percentage}%))`;
+    });
+
+    slider.addEventListener('mouseup', (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      slides.classList.remove('dragging');
+      
+      const diff = currentX - startX;
+      const time = Date.now() - startTime;
+      const velocity = Math.abs(diff) / time;
+
+      if (Math.abs(diff) > 50 || velocity > 0.5) {
+        if (diff > 0) {
+          goToSlide(currentIndex - 1);
+        } else {
+          goToSlide(currentIndex + 1);
+        }
+      } else {
+        goToSlide(currentIndex);
+      }
+    });
+
+    slider.addEventListener('mouseleave', () => {
+      if (isDragging) {
+        isDragging = false;
+        slides.classList.remove('dragging');
+        goToSlide(currentIndex);
+      }
+    });
+
+    // 터치 이벤트
+    slider.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      startTime = Date.now();
+      slides.classList.add('dragging');
+    });
+
+    slider.addEventListener('touchmove', (e) => {
+      currentX = e.touches[0].clientX;
+      const diff = currentX - startX;
+      const percentage = (diff / slider.offsetWidth) * 25;
+      slides.style.transform = `translateX(calc(-${currentIndex * 25}% + ${percentage}%))`;
+    });
+
+    slider.addEventListener('touchend', () => {
+      slides.classList.remove('dragging');
+      
+      const diff = currentX - startX;
+      const time = Date.now() - startTime;
+      const velocity = Math.abs(diff) / time;
+
+      if (Math.abs(diff) > 50 || velocity > 0.5) {
+        if (diff > 0) {
+          goToSlide(currentIndex - 1);
+        } else {
+          goToSlide(currentIndex + 1);
+        }
+      } else {
+        goToSlide(currentIndex);
+      }
+    });
+
     // 베너 이미지 클릭 이벤트
-    document.getElementById('homeImg').addEventListener('click', () => {
-      window.location.href = 'https://jbjb.r-e.kr';
+    document.getElementById('homeImg').addEventListener('click', (e) => {
+      if (Math.abs(currentX - startX) < 10) {
+        window.location.href = 'https://jbjb.r-e.kr';
+      }
     });
 
-    document.getElementById('chatImg').addEventListener('click', () => {
-      window.location.href = 'chat.html';
+    document.getElementById('chatImg').addEventListener('click', (e) => {
+      if (Math.abs(currentX - startX) < 10) {
+        window.location.href = 'chat.html';
+      }
     });
 
-    document.getElementById('gifsvgImg').addEventListener('click', () => {
-      window.location.href = 'gifsvg.html';
+    document.getElementById('gifsvgImg').addEventListener('click', (e) => {
+      if (Math.abs(currentX - startX) < 10) {
+        window.location.href = 'gifsvg.html';
+      }
     });
 
-    document.getElementById('wikiImg').addEventListener('click', () => {
-      window.open('https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82', '_blank');
+    document.getElementById('wikiImg').addEventListener('click', (e) => {
+      if (Math.abs(currentX - startX) < 10) {
+        window.open('https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82', '_blank');
+      }
     });
   </script>
 </body>
