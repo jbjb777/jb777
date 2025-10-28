@@ -113,6 +113,22 @@
       transition: transform 0.5s ease-in-out;
     }
     
+    .slides.slide-0 {
+      transform: translateX(0%);
+    }
+    
+    .slides.slide-1 {
+      transform: translateX(-100%);
+    }
+    
+    .slides.slide-2 {
+      transform: translateX(-200%);
+    }
+    
+    .slides.slide-3 {
+      transform: translateX(-300%);
+    }
+    
     .slides img {
       width: 100%;
       height: 100%;
@@ -291,7 +307,7 @@
 
     function goToSlide(index) {
       currentIndex = (index + totalSlides) % totalSlides;
-      slides.style.transform = `translateX(-${currentIndex * 25}%)`;
+      slides.className = 'slides slide-' + currentIndex;
       
       indicators.forEach((ind, i) => {
         ind.classList.toggle('active', i === currentIndex);
