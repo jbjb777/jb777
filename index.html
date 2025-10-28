@@ -90,9 +90,15 @@
     }
 
     /* 전체화면 슬라이더 */
-    .slider {
+    .slider-container {
+      position: relative;
       width: 100vw;
-      height: calc(100vh - 120px); /* 헤더 높이 제외 */
+      height: calc(100vh - 120px);
+    }
+
+    .slider {
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       background: #000;
       display: flex;
@@ -102,15 +108,9 @@
     
     .slides {
       display: flex;
-      width: 400%; /* 4장의 이미지 */
+      width: 400%;
       height: 100%;
-      animation: slide 16s infinite ease-in-out;
-      transition: transform 0.3s ease-out;
-    }
-    
-    .slides.dragging {
-      animation: none;
-      transition: none;
+      transition: transform 0.5s ease-in-out;
     }
     
     .slides img {
@@ -125,14 +125,68 @@
     .slides img:hover {
       transform: scale(1.02);
     }
-    
-    /* 각 이미지마다 3초 정지 */
-    @keyframes slide {
-      0%, 18.75% { transform: translateX(0%); }       /* 첫 이미지 3초 정지 */
-      25%, 43.75% { transform: translateX(-100%); }   /* 두 번째 3초 정지 */
-      50%, 68.75% { transform: translateX(-200%); }   /* 세 번째 3초 정지 */
-      75%, 93.75% { transform: translateX(-300%); }   /* 네 번째 3초 정지 */
-      100% { transform: translateX(0%); }             /* 다시 처음 */
+
+    /* 화살표 버튼 */
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(54, 99, 255, 0.8);
+      color: white;
+      border: none;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      font-size: 28px;
+      cursor: pointer;
+      z-index: 5;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .arrow:hover {
+      background: rgba(54, 99, 255, 1);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .arrow:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    .arrow.left {
+      left: 20px;
+    }
+
+    .arrow.right {
+      right: 20px;
+    }
+
+    /* 인디케이터 */
+    .indicators {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 5;
+    }
+
+    .indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .indicator.active {
+      background: #3663FF;
+      width: 32px;
+      border-radius: 6px;
     }
 
     main {
@@ -148,8 +202,19 @@
       .top-button {
         width: 100%;
       }
-      .slider {
+      .slider-container {
         height: calc(100vh - 200px);
+      }
+      .arrow {
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
+      }
+      .arrow.left {
+        left: 10px;
+      }
+      .arrow.right {
+        right: 10px;
       }
     }
   </style>
@@ -171,17 +236,30 @@
   </header>
 
   <main>
-    <div class="slider">
-      <div class="slides">
-        <img src="home.png" alt="home" id="homeImg">
-        <img src="chat.png" alt="chat" id="chatImg">
-        <img src="gifsvg.png" alt="gifsvg" id="gifsvgImg">
-        <img src="wiki.png" alt="wiki" id="wikiImg">
+    <div class="slider-container">
+      <div class="slider">
+        <div class="slides" id="slides">
+          <img src="home.png" alt="home" id="homeImg">
+          <img src="chat.png" alt="chat" id="chatImg">
+          <img src="gifsvg.png" alt="gifsvg" id="gifsvgImg">
+          <img src="wiki.png" alt="wiki" id="wikiImg">
+        </div>
+      </div>
+      
+      <button class="arrow left" id="prevBtn">‹</button>
+      <button class="arrow right" id="nextBtn">›</button>
+      
+      <div class="indicators">
+        <div class="indicator active" data-index="0"></div>
+        <div class="indicator" data-index="1"></div>
+        <div class="indicator" data-index="2"></div>
+        <div class="indicator" data-index="3"></div>
       </div>
     </div>
   </main>
 
   <script>
+    // 상단 버튼 이벤트
     document.getElementById('openLinkBtn1').addEventListener('click', () => {
       window.open('https://naver.me/xAWjFEtu', '_blank');
     });
@@ -202,120 +280,86 @@
       window.location.href = 'chat.html';
     });
 
-    // 스와이프 기능
-    const slider = document.querySelector('.slider');
-    const slides = document.querySelector('.slides');
+    // 슬라이더 기능
+    const slides = document.getElementById('slides');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const indicators = document.querySelectorAll('.indicator');
     let currentIndex = 0;
-    let startX = 0;
-    let currentX = 0;
-    let isDragging = false;
-    let startTime = 0;
+    const totalSlides = 4;
+    let autoSlideInterval;
 
     function goToSlide(index) {
-      currentIndex = Math.max(0, Math.min(3, index));
+      currentIndex = (index + totalSlides) % totalSlides;
       slides.style.transform = `translateX(-${currentIndex * 25}%)`;
+      
+      indicators.forEach((ind, i) => {
+        ind.classList.toggle('active', i === currentIndex);
+      });
     }
 
-    // 마우스 이벤트
-    slider.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      startX = e.clientX;
-      startTime = Date.now();
-      slides.classList.add('dragging');
+    function nextSlide() {
+      goToSlide(currentIndex + 1);
+    }
+
+    function prevSlide() {
+      goToSlide(currentIndex - 1);
+    }
+
+    function startAutoSlide() {
+      autoSlideInterval = setInterval(nextSlide, 4000);
+    }
+
+    function stopAutoSlide() {
+      clearInterval(autoSlideInterval);
+    }
+
+    // 화살표 버튼 이벤트
+    prevBtn.addEventListener('click', () => {
+      prevSlide();
+      stopAutoSlide();
+      startAutoSlide();
     });
 
-    slider.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      currentX = e.clientX;
-      const diff = currentX - startX;
-      const percentage = (diff / slider.offsetWidth) * 25;
-      slides.style.transform = `translateX(calc(-${currentIndex * 25}% + ${percentage}%))`;
+    nextBtn.addEventListener('click', () => {
+      nextSlide();
+      stopAutoSlide();
+      startAutoSlide();
     });
 
-    slider.addEventListener('mouseup', (e) => {
-      if (!isDragging) return;
-      isDragging = false;
-      slides.classList.remove('dragging');
-      
-      const diff = currentX - startX;
-      const time = Date.now() - startTime;
-      const velocity = Math.abs(diff) / time;
-
-      if (Math.abs(diff) > 50 || velocity > 0.5) {
-        if (diff > 0) {
-          goToSlide(currentIndex - 1);
-        } else {
-          goToSlide(currentIndex + 1);
-        }
-      } else {
-        goToSlide(currentIndex);
-      }
-    });
-
-    slider.addEventListener('mouseleave', () => {
-      if (isDragging) {
-        isDragging = false;
-        slides.classList.remove('dragging');
-        goToSlide(currentIndex);
-      }
-    });
-
-    // 터치 이벤트
-    slider.addEventListener('touchstart', (e) => {
-      startX = e.touches[0].clientX;
-      startTime = Date.now();
-      slides.classList.add('dragging');
-    });
-
-    slider.addEventListener('touchmove', (e) => {
-      currentX = e.touches[0].clientX;
-      const diff = currentX - startX;
-      const percentage = (diff / slider.offsetWidth) * 25;
-      slides.style.transform = `translateX(calc(-${currentIndex * 25}% + ${percentage}%))`;
-    });
-
-    slider.addEventListener('touchend', () => {
-      slides.classList.remove('dragging');
-      
-      const diff = currentX - startX;
-      const time = Date.now() - startTime;
-      const velocity = Math.abs(diff) / time;
-
-      if (Math.abs(diff) > 50 || velocity > 0.5) {
-        if (diff > 0) {
-          goToSlide(currentIndex - 1);
-        } else {
-          goToSlide(currentIndex + 1);
-        }
-      } else {
-        goToSlide(currentIndex);
-      }
+    // 인디케이터 클릭 이벤트
+    indicators.forEach((indicator) => {
+      indicator.addEventListener('click', () => {
+        const index = parseInt(indicator.getAttribute('data-index'));
+        goToSlide(index);
+        stopAutoSlide();
+        startAutoSlide();
+      });
     });
 
     // 베너 이미지 클릭 이벤트
-    document.getElementById('homeImg').addEventListener('click', (e) => {
-      if (Math.abs(currentX - startX) < 10) {
-        window.location.href = 'https://jbjb.r-e.kr';
-      }
+    document.getElementById('homeImg').addEventListener('click', () => {
+      window.location.href = 'https://jbjb.r-e.kr';
     });
 
-    document.getElementById('chatImg').addEventListener('click', (e) => {
-      if (Math.abs(currentX - startX) < 10) {
-        window.location.href = 'chat.html';
-      }
+    document.getElementById('chatImg').addEventListener('click', () => {
+      window.location.href = 'chat.html';
     });
 
-    document.getElementById('gifsvgImg').addEventListener('click', (e) => {
-      if (Math.abs(currentX - startX) < 10) {
-        window.location.href = 'gifsvg.html';
-      }
+    document.getElementById('gifsvgImg').addEventListener('click', () => {
+      window.location.href = 'gifsvg.html';
     });
 
-    document.getElementById('wikiImg').addEventListener('click', (e) => {
-      if (Math.abs(currentX - startX) < 10) {
-        window.open('https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82', '_blank');
-      }
+    document.getElementById('wikiImg').addEventListener('click', () => {
+      window.open('https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82', '_blank');
     });
+
+    // 자동 슬라이드 시작
+    startAutoSlide();
+
+    // 마우스 오버 시 자동 슬라이드 정지
+    document.querySelector('.slider-container').addEventListener('mouseenter', stopAutoSlide);
+    document.querySelector('.slider-container').addEventListener('mouseleave', startAutoSlide);
   </script>
 </body>
 </html>
