@@ -112,6 +112,12 @@
       height: 100%;
       object-fit: contain;
       flex: 0 0 100%;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    
+    .slides img:hover {
+      transform: scale(1.02);
     }
     
     /* 각 이미지마다 3초 정지 */
@@ -161,10 +167,10 @@
   <main>
     <div class="slider">
       <div class="slides">
-        <img src="home.png" alt="home">
-        <img src="chat.png" alt="chat">
-        <img src="gifsvg.png" alt="gifsvg">
-        <img src="wiki.png" alt="wiki">
+        <img src="home.png" alt="home" id="homeImg">
+        <img src="chat.png" alt="chat" id="chatImg">
+        <img src="gifsvg.png" alt="gifsvg" id="gifsvgImg">
+        <img src="wiki.png" alt="wiki" id="wikiImg">
       </div>
     </div>
   </main>
@@ -189,7 +195,23 @@
     document.getElementById('chatBtn').addEventListener('click', () => {
       window.location.href = 'chat.html';
     });
+
+    // 베너 이미지 클릭 이벤트
+    document.getElementById('homeImg').addEventListener('click', () => {
+      window.location.href = 'https://jbjb.r-e.kr';
+    });
+
+    document.getElementById('chatImg').addEventListener('click', () => {
+      window.location.href = 'chat.html';
+    });
+
+    document.getElementById('gifsvgImg').addEventListener('click', () => {
+      window.location.href = 'gifsvg.html';
+    });
+
+    document.getElementById('wikiImg').addEventListener('click', () => {
+      window.open('https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82', '_blank');
+    });
   </script>
 </body>
 </html>
-
