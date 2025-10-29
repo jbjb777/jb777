@@ -210,6 +210,57 @@
       margin: 0;
     }
 
+    /* 대표 작품들 섹션 */
+    .featured-works {
+      padding: 60px 40px;
+      background: #1a1a1a;
+    }
+
+    .section-title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 40px;
+      color: #ffffff;
+      text-align: left;
+    }
+
+    .works-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .work-card {
+      position: relative;
+      background: #2a2a2a;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: block;
+      aspect-ratio: 4 / 3;
+      text-decoration: none;
+    }
+
+    .work-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(54, 99, 255, 0.3);
+    }
+
+    .work-card iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      pointer-events: none;
+    }
+
+    @media (max-width: 1200px) {
+      .works-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
     @media (max-width: 800px) {
       nav {
         flex-direction: column;
@@ -231,6 +282,15 @@
       }
       .arrow.right {
         right: 10px;
+      }
+      .works-grid {
+        grid-template-columns: 1fr;
+      }
+      .featured-works {
+        padding: 40px 20px;
+      }
+      .section-title {
+        font-size: 26px;
       }
     }
   </style>
@@ -272,6 +332,24 @@
         <div class="indicator" data-index="3"></div>
       </div>
     </div>
+
+    <section class="featured-works">
+      <h2 class="section-title">대표 작품들</h2>
+      <div class="works-grid">
+        <a href="https://playentry.org/project/687098313bbdde284716010e" target="_blank" class="work-card">
+          <iframe src="https://playentry.org/project/687098313bbdde284716010e" frameborder="0" loading="lazy"></iframe>
+        </a>
+        <a href="https://playentry.org/project/68c6799e8d49a4897c18dc29" target="_blank" class="work-card">
+          <iframe src="https://playentry.org/project/68c6799e8d49a4897c18dc29" frameborder="0" loading="lazy"></iframe>
+        </a>
+        <a href="https://playentry.org/project/68e8dcf222efbad1212ef9e0" target="_blank" class="work-card">
+          <iframe src="https://playentry.org/project/68e8dcf222efbad1212ef9e0" frameborder="0" loading="lazy"></iframe>
+        </a>
+        <a href="https://playentry.org/project/678caee4662c692e3577270e" target="_blank" class="work-card">
+          <iframe src="https://playentry.org/project/678caee4662c692e3577270e" frameborder="0" loading="lazy"></iframe>
+        </a>
+      </div>
+    </section>
   </main>
 
   <script>
