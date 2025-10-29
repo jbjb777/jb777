@@ -238,9 +238,11 @@
       border-radius: 12px;
       overflow: hidden;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
-      display: block;
+      display: flex;
+      flex-direction: column;
       aspect-ratio: 4 / 3;
       text-decoration: none;
+      color: #ffffff;
     }
 
     .work-card:hover {
@@ -248,11 +250,63 @@
       box-shadow: 0 8px 25px rgba(54, 99, 255, 0.3);
     }
 
-    .work-card iframe {
+    .work-thumbnail {
+      width: 100%;
+      height: 70%;
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .work-thumbnail img {
       width: 100%;
       height: 100%;
-      border: none;
-      pointer-events: none;
+      object-fit: cover;
+    }
+
+    .work-info {
+      padding: 15px;
+      height: 30%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .work-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .work-meta {
+      font-size: 13px;
+      color: #aaa;
+      display: flex;
+      gap: 10px;
+    }
+
+    .play-icon {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: rgba(54, 99, 255, 0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .work-card:hover .play-icon {
+      opacity: 1;
     }
 
     @media (max-width: 1200px) {
@@ -336,17 +390,57 @@
     <section class="featured-works">
       <h2 class="section-title">대표 작품들</h2>
       <div class="works-grid">
-        <a href="https://playentry.org/project/687098313bbdde284716010e" target="_blank" class="work-card">
-          <iframe src="https://playentry.org/project/687098313bbdde284716010e" frameborder="0" loading="lazy"></iframe>
+        <a href="https://playentry.org/project/687098313bbdde284716010e" target="_blank" class="work-card" data-project="687098313bbdde284716010e">
+          <div class="work-thumbnail">
+            <img src="" alt="프로젝트 썸네일">
+            <div class="play-icon">▶</div>
+          </div>
+          <div class="work-info">
+            <div class="work-title">로딩 중...</div>
+            <div class="work-meta">
+              <span>👁️ -</span>
+              <span>❤️ -</span>
+            </div>
+          </div>
         </a>
-        <a href="https://playentry.org/project/68c6799e8d49a4897c18dc29" target="_blank" class="work-card">
-          <iframe src="https://playentry.org/project/68c6799e8d49a4897c18dc29" frameborder="0" loading="lazy"></iframe>
+        <a href="https://playentry.org/project/68c6799e8d49a4897c18dc29" target="_blank" class="work-card" data-project="68c6799e8d49a4897c18dc29">
+          <div class="work-thumbnail">
+            <img src="" alt="프로젝트 썸네일">
+            <div class="play-icon">▶</div>
+          </div>
+          <div class="work-info">
+            <div class="work-title">로딩 중...</div>
+            <div class="work-meta">
+              <span>👁️ -</span>
+              <span>❤️ -</span>
+            </div>
+          </div>
         </a>
-        <a href="https://playentry.org/project/68e8dcf222efbad1212ef9e0" target="_blank" class="work-card">
-          <iframe src="https://playentry.org/project/68e8dcf222efbad1212ef9e0" frameborder="0" loading="lazy"></iframe>
+        <a href="https://playentry.org/project/68e8dcf222efbad1212ef9e0" target="_blank" class="work-card" data-project="68e8dcf222efbad1212ef9e0">
+          <div class="work-thumbnail">
+            <img src="" alt="프로젝트 썸네일">
+            <div class="play-icon">▶</div>
+          </div>
+          <div class="work-info">
+            <div class="work-title">로딩 중...</div>
+            <div class="work-meta">
+              <span>👁️ -</span>
+              <span>❤️ -</span>
+            </div>
+          </div>
         </a>
-        <a href="https://playentry.org/project/678caee4662c692e3577270e" target="_blank" class="work-card">
-          <iframe src="https://playentry.org/project/678caee4662c692e3577270e" frameborder="0" loading="lazy"></iframe>
+        <a href="https://playentry.org/project/678caee4662c692e3577270e" target="_blank" class="work-card" data-project="678caee4662c692e3577270e">
+          <div class="work-thumbnail">
+            <img src="" alt="프로젝트 썸네일">
+            <div class="play-icon">▶</div>
+          </div>
+          <div class="work-info">
+            <div class="work-title">로딩 중...</div>
+            <div class="work-meta">
+              <span>👁️ -</span>
+              <span>❤️ -</span>
+            </div>
+          </div>
         </a>
       </div>
     </section>
@@ -454,6 +548,59 @@
     // 마우스 오버 시 자동 슬라이드 정지
     document.querySelector('.slider-container').addEventListener('mouseenter', stopAutoSlide);
     document.querySelector('.slider-container').addEventListener('mouseleave', startAutoSlide);
+
+    // 엔트리 프로젝트 정보 (수동으로 입력)
+    const projectsData = {
+      '687098313bbdde284716010e': {
+        name: '엔트리 프로젝트 1',
+        thumb: 'https://via.placeholder.com/400x300/3663FF/ffffff?text=Project+1',
+        visit: 0,
+        likeCnt: 0
+      },
+      '68c6799e8d49a4897c18dc29': {
+        name: '엔트리 프로젝트 2',
+        thumb: 'https://via.placeholder.com/400x300/3663FF/ffffff?text=Project+2',
+        visit: 0,
+        likeCnt: 0
+      },
+      '68e8dcf222efbad1212ef9e0': {
+        name: '엔트리 프로젝트 3',
+        thumb: 'https://via.placeholder.com/400x300/3663FF/ffffff?text=Project+3',
+        visit: 0,
+        likeCnt: 0
+      },
+      '678caee4662c692e3577270e': {
+        name: '엔트리 프로젝트 4',
+        thumb: 'https://via.placeholder.com/400x300/3663FF/ffffff?text=Project+4',
+        visit: 0,
+        likeCnt: 0
+      }
+    };
+
+    function loadProjectInfo() {
+      const workCards = document.querySelectorAll('.work-card');
+      
+      workCards.forEach((card) => {
+        const projectId = card.getAttribute('data-project');
+        const thumbnail = card.querySelector('.work-thumbnail img');
+        const title = card.querySelector('.work-title');
+        const meta = card.querySelector('.work-meta');
+        
+        const project = projectsData[projectId];
+        
+        if (project) {
+          thumbnail.src = project.thumb;
+          title.textContent = project.name;
+          meta.innerHTML = `
+            <span>👁️ ${project.visit.toLocaleString()}</span>
+            <span>❤️ ${project.likeCnt.toLocaleString()}</span>
+          `;
+        }
+      });
+    }
+    
+    // 페이지 로드 시 프로젝트 정보 표시
+    loadProjectInfo();
   </script>
 </body>
 </html>
