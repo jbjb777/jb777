@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>이미지 미리보기</title>
+<title>㋡꧁정빈777꧂ - 이미지 미리보기</title>
 <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 2000 2000">
   <defs>
@@ -23,124 +23,208 @@
   <path fill="%23fff" filter="url(%23filter1)" d="M 1137 506 C 1252 449 1369 497 1427 625 L 1459 696 C 1484 752 1488 821 1471 878 L 1472 877 C 1535 891 1581 939 1608 997 L 1632 1052 C 1698 1199 1657 1324 1544 1381 L 1175 1565 L 972 1114 C 1002 1241 946 1377 834 1433 L 776 1462 C 654 1523 518 1467 449 1343 L 596 1269 C 625 1309 663 1331 708 1308 L 758 1283 C 813 1256 830 1185 802 1124 L 525 509 L 672 435 L 784 683 L 1137 506 Z M 1444 1232 C 1488 1210 1504 1149 1480 1095 L 1476 1085 C 1452 1033 1397 1007 1353 1029 L 1151 1130 L 1242 1333 L 1444 1232 Z M 1184 679 L 991 775 L 1084 981 L 1276 885 C 1319 864 1336 802 1312 749 L 1306 736 C 1283 684 1226 658 1184 679 Z"/>
 </svg>' />
 
-  <style>
-  body {
-    margin:0;
-    font-family: sans-serif;
-    background:#121212;
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
-    text-align:center;
+<!-- 공통 헤더 CSS -->
+<link rel="stylesheet" href="header.css">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background: #121212; 
+    color: #ffffff; 
+    overflow-x: hidden; 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
   }
 
-  /* 나가기 버튼 */
-  #exitBtn {
-    position:absolute;
-    top:15px;
-    left:15px;
-    width:36px;
-    height:36px;
-    border-radius:50%;
-    font-size:20px;
-    line-height:36px;
-    text-align:center;
-    background: linear-gradient(135deg,#00ffcc,#3366ff);
-    color:white;
-    border:none;
-    cursor:pointer;
-    box-shadow:0 8px 16px rgba(0,255,204,0.3);
-    transition: transform 0.2s, box-shadow 0.3s;
-    z-index:1000;
-  }
-  #exitBtn:hover {
-    transform: translateY(-2px);
-    box-shadow:0 8px 16px rgba(0,255,204,0.5);
+  main { 
+    padding: 0; 
+    margin: 0; 
+    flex: 1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
   }
 
   #container {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    background:#1e1e1e;
-    padding:30px;
-    border-radius:16px;
-    box-shadow:0 0 30px rgba(0,0,0,0.6);
-    max-width:90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #1a1a1a;
+    padding: 40px 30px;
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.6);
+    max-width: 90%;
+    margin: 20px;
   }
 
-  img {
-    max-width:90vw;
-    max-height:70vh;
-    border-radius:12px;
-    box-shadow:0 8px 16px rgba(0,255,204,0.3);
+  h2 { 
+    margin-bottom: 30px; 
+    font-size: 28px; 
+    color: #3663FF; 
+    text-align: center;
   }
 
-  button.copyBtn {
-    margin-top:15px;
-    padding:10px 20px;
-    font-size:16px;
-    border:none;
-    border-radius:12px;
-    cursor:pointer;
-    background: linear-gradient(135deg,#00ffcc,#3366ff);
-    color:white;
-    box-shadow:0 6px 12px rgba(0,255,204,0.3);
-    transition: transform 0.2s, box-shadow 0.3s;
-  }
-  button.copyBtn:hover {
-    transform: translateY(-2px);
-    box-shadow:0 8px 16px rgba(0,255,204,0.5);
+  #imageContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
   }
 
-  a.originalLink {
-    margin-top:10px;
-    color:#00ffd5;
-    text-decoration:none;
+  #imageContainer img {
+    max-width: 90vw;
+    max-height: 60vh;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(54,99,255,0.3);
   }
-  a.originalLink:hover {
-    text-decoration:underline;
+
+  #imageContainer p {
+    color: #aaa;
+    font-size: 18px;
+  }
+
+  .action-button {
+    background: #3663FF;
+    color: #fff;
+    padding: 12px 28px;
+    margin: 8px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    white-space: nowrap;
+    display: none;
+  }
+
+  .action-button:hover {
+    transform: translateY(-8px) scale(1.05);
+  }
+
+  .action-button:active {
+    background: #2952CC;
+  }
+
+  .action-button.show {
+    display: inline-block;
+  }
+
+  .button-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .original-link {
+    margin-top: 15px;
+    color: #3663FF;
+    text-decoration: none;
+    font-size: 14px;
+    display: none;
+  }
+
+  .original-link:hover {
+    text-decoration: underline;
+  }
+
+  .original-link.show {
+    display: inline-block;
+  }
+
+  @media (max-width: 800px) {
+    #container {
+      padding: 30px 20px;
+      margin: 15px;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    #imageContainer img {
+      max-height: 50vh;
+    }
+
+    .button-container {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .action-button {
+      width: 100%;
+    }
   }
 </style>
 </head>
 <body>
-<button id="exitBtn" title="나가기">×</button>
-<div id="container">
-  <h2>이미지 미리보기</h2>
-  <div id="imageContainer"></div>
-  <button class="copyBtn" id="copyBtn" style="display:none;">🔗 링크 복사</button>
-  <a id="originalLink" class="originalLink" href="#" target="_blank" style="display:none;">원본 이미지 보기</a>
-</div>
+
+<!-- 헤더 컨테이너 -->
+<div id="header-container"></div>
+
+<main>
+  <div id="container">
+    <h2>🖼️ 이미지 미리보기</h2>
+    <div id="imageContainer"></div>
+    
+    <div class="button-container">
+      <button class="action-button" id="copyLinkBtn">🔗 미리보기 링크 복사</button>
+      <button class="action-button" id="shareImageBtn">🖼️ 이미지 공유하기</button>
+    </div>
+    
+    <a id="originalLink" class="original-link" href="#" target="_blank">🔍 원본 이미지 새창에서 보기</a>
+  </div>
+</main>
+
+<!-- 공통 헤더 JavaScript -->
+<script src="header.js"></script>
 
 <script>
-const exitBtn = document.getElementById('exitBtn');
-exitBtn.addEventListener('click', ()=>{ window.location.href="http://jbjb.r-e.kr"; });
-
 const params = new URLSearchParams(location.search);
 const imgUrl = params.get("img");
 
 const imgContainer = document.getElementById('imageContainer');
-const copyBtn = document.getElementById('copyBtn');
+const copyLinkBtn = document.getElementById('copyLinkBtn');
+const shareImageBtn = document.getElementById('shareImageBtn');
 const originalLink = document.getElementById('originalLink');
 
 if(imgUrl){
   const img = document.createElement('img');
   img.src = imgUrl;
+  img.alt = '업로드된 이미지';
   imgContainer.appendChild(img);
 
-  copyBtn.style.display = 'inline-block';
-  originalLink.style.display = 'inline-block';
+  // 버튼들 표시
+  copyLinkBtn.classList.add('show');
+  shareImageBtn.classList.add('show');
+  originalLink.classList.add('show');
   originalLink.href = imgUrl;
 
-  copyBtn.addEventListener('click', ()=>{
-    navigator.clipboard.writeText(window.location.href).then(()=>{
-      alert('미리보기 링크가 복사되었습니다!\n'+window.location.href);
+  // 미리보기 링크 복사
+  copyLinkBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      const originalText = copyLinkBtn.textContent;
+      copyLinkBtn.textContent = "✔ 복사 완료!";
+      copyLinkBtn.style.background = "#00cc88";
+      setTimeout(() => {
+        copyLinkBtn.textContent = originalText;
+        copyLinkBtn.style.background = "#3663FF";
+      }, 1500);
+    }).catch(() => {
+      alert('복사 실패');
     });
   });
-}else{
-  imgContainer.innerHTML = "<p>이미지 URL이 없습니다.</p>";
+
+  // 이미지 공유하기 페이지로 이동
+  shareImageBtn.addEventListener('click', () => {
+    window.location.href = 'https://jbjb.r-e.kr/img.html';
+  });
+} else {
+  imgContainer.innerHTML = "<p>❌ 이미지 URL이 없습니다.</p>";
 }
 </script>
 </body>
