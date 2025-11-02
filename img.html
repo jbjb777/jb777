@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>㋡꧁정빈777꧂ - 이미지 업로드</title>
+<title>㋡꧁정빈777꧂ - 파일 업로드</title>
 <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 2000 2000">
   <defs>
@@ -22,9 +22,6 @@
   <path fill="url(%23linearGradient1)" d="M 2000 1000 C 2000 448 1552 0 1000 0 C 448 0 0 448 0 1000 C 0 1552 448 2000 1000 2000 C 1552 2000 2000 1552 2000 1000 Z"/>
   <path fill="%23fff" filter="url(%23filter1)" d="M 1137 506 C 1252 449 1369 497 1427 625 L 1459 696 C 1484 752 1488 821 1471 878 L 1472 877 C 1535 891 1581 939 1608 997 L 1632 1052 C 1698 1199 1657 1324 1544 1381 L 1175 1565 L 972 1114 C 1002 1241 946 1377 834 1433 L 776 1462 C 654 1523 518 1467 449 1343 L 596 1269 C 625 1309 663 1331 708 1308 L 758 1283 C 813 1256 830 1185 802 1124 L 525 509 L 672 435 L 784 683 L 1137 506 Z M 1444 1232 C 1488 1210 1504 1149 1480 1095 L 1476 1085 C 1452 1033 1397 1007 1353 1029 L 1151 1130 L 1242 1333 L 1444 1232 Z M 1184 679 L 991 775 L 1084 981 L 1276 885 C 1319 864 1336 802 1312 749 L 1306 736 C 1283 684 1226 658 1184 679 Z"/>
 </svg>' />
-
-<!-- 공통 헤더 CSS -->
-<link rel="stylesheet" href="header.css">
 
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -65,7 +62,40 @@
     transform: translateY(-2px);
   }
   #dropArea p { margin:0; color:#aaa; font-size:16px; }
-  #previewImg { display:none; max-width:90%; margin:20px auto; border-radius:10px; box-shadow:0 8px 25px rgba(54,99,255,0.3); }
+  
+  #previewContainer { 
+    display:none; 
+    max-width:90%; 
+    margin:20px auto; 
+    text-align:center; 
+  }
+  #previewImg { 
+    max-width:100%; 
+    border-radius:10px; 
+    box-shadow:0 8px 25px rgba(54,99,255,0.3); 
+  }
+  .file-icon { 
+    font-size:100px; 
+    margin:20px 0; 
+    animation: fadeIn 0.3s ease-in;
+  }
+  .file-name { 
+    color:#aaa; 
+    font-size:14px; 
+    margin-top:10px; 
+    word-break:break-all; 
+    padding: 0 10px;
+  }
+  .file-size {
+    color: #666;
+    font-size: 12px;
+    margin-top: 5px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
 
   .upload-button { 
     background: #3663FF; 
@@ -135,24 +165,29 @@
     }
     
     h2 { font-size: 24px; }
+    .file-icon { font-size: 80px; }
   }
 </style>
 </head>
 <body>
 
-<!-- 헤더 컨테이너 -->
-<div id="header-container"></div>
-
 <main>
 <div class="container">
   <!-- 페이지 1: 업로드 -->
   <div id="uploadSection" class="page active">
-    <h2>이미지 업로드</h2>
+    <h2>파일 업로드</h2>
     <div id="dropArea">
-      <p>📤 여기에 이미지 드래그 또는 클릭</p>
-      <input type="file" id="fileInput" accept="image/*">
+      <p>📤 여기에 파일 드래그 또는 클릭</p>
+      <input type="file" id="fileInput">
     </div>
-    <img id="previewImg" src="" alt="미리보기">
+    <div id="previewContainer">
+      <img id="previewImg" src="" alt="미리보기" style="display:none;">
+      <div id="fileIcon" style="display:none;">
+        <div class="file-icon"></div>
+        <div class="file-name"></div>
+        <div class="file-size"></div>
+      </div>
+    </div>
     <button class="upload-button" id="uploadBtn">업로드</button>
   </div>
 
@@ -186,19 +221,61 @@
 </div>
 </main>
 
-<!-- 공통 헤더 JavaScript -->
-<script src="header.js"></script>
-
 <script>
-// 업로드 페이지 로직
 const dropArea = document.getElementById('dropArea');
 const fileInput = document.getElementById('fileInput');
+const previewContainer = document.getElementById('previewContainer');
 const previewImg = document.getElementById('previewImg');
+const fileIcon = document.getElementById('fileIcon');
 const uploadBtn = document.getElementById('uploadBtn');
 const copyBtn = document.getElementById('copyBtn');
 const linkDisplay = document.getElementById('linkDisplay');
 const openPreviewBtn = document.getElementById('openPreviewBtn');
 const newUploadBtn = document.getElementById('newUploadBtn');
+
+// 파일 타입별 아이콘 가져오기
+function getFileIcon(fileName) {
+  const ext = fileName.split('.').pop().toLowerCase();
+  const icons = {
+    // 문서
+    'pdf': '📄',
+    'doc': '📝', 'docx': '📝',
+    'txt': '📃',
+    'rtf': '📃',
+    // 스프레드시트
+    'xls': '📊', 'xlsx': '📊',
+    'csv': '📊',
+    // 프레젠테이션
+    'ppt': '📽️', 'pptx': '📽️',
+    // 압축파일
+    'zip': '🗜️', 'rar': '🗜️', '7z': '🗜️',
+    'tar': '🗜️', 'gz': '🗜️',
+    // 동영상
+    'mp4': '🎬', 'avi': '🎬', 'mov': '🎬', 'mkv': '🎬', 'webm': '🎬',
+    'flv': '🎬', 'wmv': '🎬',
+    // 음악
+    'mp3': '🎵', 'wav': '🎵', 'flac': '🎵', 'm4a': '🎵',
+    'ogg': '🎵', 'aac': '🎵',
+    // 코드
+    'html': '💻', 'css': '💻', 'js': '💻', 'py': '💻', 'java': '💻',
+    'cpp': '💻', 'c': '💻', 'php': '💻', 'json': '💻',
+    'xml': '💻', 'sql': '💻', 'sh': '💻',
+    // 이미지
+    'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+    'bmp': '🖼️', 'svg': '🖼️', 'webp': '🖼️', 'heic': '🖼️', 
+    'heif': '🖼️', 'tiff': '🖼️', 'tif': '🖼️',
+  };
+  return icons[ext] || '📁';
+}
+
+// 파일 크기 포맷
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
 
 // 페이지 전환 함수
 function showPage(pageName) {
@@ -230,12 +307,30 @@ fileInput.addEventListener('change', () => {
 });
 
 function previewFile(file) {
-  const reader = new FileReader();
-  reader.onload = ev => { 
-    previewImg.src = ev.target.result; 
-    previewImg.style.display = 'block'; 
-  };
-  reader.readAsDataURL(file);
+  previewContainer.style.display = 'block';
+  
+  // 브라우저에서 미리보기 가능한 이미지 포맷만 체크
+  const fileName = file.name.toLowerCase();
+  const previewableImages = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'];
+  const canPreview = (file.type.startsWith('image/') && !fileName.endsWith('.heic') && !fileName.endsWith('.heif')) 
+                     || previewableImages.some(ext => fileName.endsWith('.' + ext));
+  
+  if (canPreview) {
+    const reader = new FileReader();
+    reader.onload = ev => { 
+      previewImg.src = ev.target.result; 
+      previewImg.style.display = 'block'; 
+      fileIcon.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    // 미리보기 불가능한 파일은 아이콘 표시
+    previewImg.style.display = 'none';
+    fileIcon.style.display = 'block';
+    fileIcon.querySelector('.file-icon').textContent = getFileIcon(file.name);
+    fileIcon.querySelector('.file-name').textContent = file.name;
+    fileIcon.querySelector('.file-size').textContent = formatFileSize(file.size);
+  }
 }
 
 // 업로드 버튼
@@ -248,7 +343,18 @@ uploadBtn.addEventListener('click', async () => {
 
   const cloudName = 'dretlhsrk';
   const uploadPreset = 'unsigned_preset';
-  const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+  
+  // 파일 타입에 따라 업로드 엔드포인트 결정
+  let resourceType = 'auto';
+  if (file.type.startsWith('video/')) {
+    resourceType = 'video';
+  } else if (file.type.startsWith('image/')) {
+    resourceType = 'image';
+  } else {
+    resourceType = 'raw';
+  }
+  
+  const url = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', uploadPreset);
@@ -282,16 +388,18 @@ uploadBtn.addEventListener('click', async () => {
       throw new Error('업로드 실패');
     }
   } catch(e) {
-    alert('업로드 실패');
-    showPage('upload'); // 실패시 첫 페이지로
+    alert('업로드 실패: ' + e.message);
+    showPage('upload');
   }
 });
 
 // 새로 업로드 버튼
 newUploadBtn.addEventListener('click', () => {
   fileInput.value = '';
+  previewContainer.style.display = 'none';
   previewImg.style.display = 'none';
   previewImg.src = '';
+  fileIcon.style.display = 'none';
   linkDisplay.value = '';
   showPage('upload');
 });
