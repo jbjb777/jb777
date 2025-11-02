@@ -335,42 +335,21 @@ if(fileUrl){
     fileContainer.appendChild(iconDiv);
     
     // 다운로드 버튼 이벤트
-    document.getElementById('mainDownloadBtn').addEventListener('click', async () => {
-      const btn = document.getElementById('mainDownloadBtn');
-      const originalText = btn.textContent;
-      btn.textContent = '⏳ 다운로드 중...';
-      btn.disabled = true;
+    document.getElementById('mainDownloadBtn').addEventListener('click', () => {
+      // Cloudinary URL을 다운로드용으로 변환
+      let downloadUrl = fileUrl;
       
-      try {
-        // CORS 우회를 위한 프록시 사용
-        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(fileUrl);
-        const response = await fetch(proxyUrl);
-        
-        if (!response.ok) throw new Error('다운로드 실패');
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        btn.textContent = '✔ 다운로드 완료!';
-        btn.style.background = '#00cc88';
-        setTimeout(() => {
-          btn.textContent = originalText;
-          btn.style.background = '#3663FF';
-          btn.disabled = false;
-        }, 2000);
-      } catch (error) {
-        console.error('다운로드 에러:', error);
-        alert('다운로드 실패: ' + error.message);
-        btn.textContent = originalText;
-        btn.disabled = false;
+      // Cloudinary URL인 경우 fl_attachment 추가
+      if (fileUrl.includes('cloudinary.com')) {
+        // URL 파싱
+        const urlParts = fileUrl.split('/upload/');
+        if (urlParts.length === 2) {
+          downloadUrl = urlParts[0] + '/upload/fl_attachment/' + urlParts[1];
+        }
       }
+      
+      // 새 창에서 다운로드
+      window.open(downloadUrl, '_blank');
     });
     
     // 링크 복사 버튼만 표시
@@ -394,40 +373,18 @@ if(fileUrl){
 
   // 이미지용 다운로드 (이미지일 때만)
   if (fileType === 'image') {
-    downloadBtn.addEventListener('click', async () => {
-      const originalText = downloadBtn.textContent;
-      downloadBtn.textContent = '⏳ 다운로드 중...';
-      downloadBtn.disabled = true;
+    downloadBtn.addEventListener('click', () => {
+      // Cloudinary URL을 다운로드용으로 변환
+      let downloadUrl = fileUrl;
       
-      try {
-        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(fileUrl);
-        const response = await fetch(proxyUrl);
-        
-        if (!response.ok) throw new Error('다운로드 실패');
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        downloadBtn.textContent = '✔ 완료!';
-        downloadBtn.style.background = '#00cc88';
-        setTimeout(() => {
-          downloadBtn.textContent = originalText;
-          downloadBtn.style.background = '#3663FF';
-          downloadBtn.disabled = false;
-        }, 2000);
-      } catch (error) {
-        console.error('다운로드 에러:', error);
-        alert('다운로드 실패: ' + error.message);
-        downloadBtn.textContent = originalText;
-        downloadBtn.disabled = false;
+      if (fileUrl.includes('cloudinary.com')) {
+        const urlParts = fileUrl.split('/upload/');
+        if (urlParts.length === 2) {
+          downloadUrl = urlParts[0] + '/upload/fl_attachment/' + urlParts[1];
+        }
       }
+      
+      window.open(downloadUrl, '_blank');
     });
   }
   
