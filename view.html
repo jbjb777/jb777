@@ -83,28 +83,6 @@
     box-shadow: 0 8px 25px rgba(54,99,255,0.3);
   }
 
-  #fileContainer iframe {
-    width: 90vw;
-    height: 70vh;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(54,99,255,0.3);
-    background: white;
-  }
-
-  #fileContainer video {
-    max-width: 90vw;
-    max-height: 60vh;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(54,99,255,0.3);
-  }
-
-  #fileContainer audio {
-    width: 100%;
-    max-width: 500px;
-    margin: 20px 0;
-  }
-
   .file-icon-display {
     text-align: center;
     padding: 40px;
@@ -126,6 +104,27 @@
   .file-icon-display .file-info {
     color: #666;
     font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .download-button {
+    background: #3663FF;
+    color: #fff;
+    padding: 16px 40px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    margin-top: 10px;
+  }
+
+  .download-button:hover {
+    transform: translateY(-8px) scale(1.05);
+  }
+
+  .download-button:active {
+    background: #2952CC;
   }
 
   @keyframes fadeIn {
@@ -288,12 +287,6 @@ function getFileType(url) {
   
   if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) {
     return 'image';
-  } else if (ext === 'pdf') {
-    return 'pdf';
-  } else if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
-    return 'video';
-  } else if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) {
-    return 'audio';
   } else {
     return 'other';
   }
@@ -323,47 +316,45 @@ if(fileUrl){
     fileContainer.appendChild(img);
     document.querySelector('h2').textContent = '🖼️ 이미지 미리보기';
     
-  } else if (fileType === 'pdf') {
-    // PDF 뷰어
-    const iframe = document.createElement('iframe');
-    iframe.src = fileUrl;
-    fileContainer.appendChild(iframe);
-    document.querySelector('h2').textContent = '📄 PDF 미리보기';
-    
-  } else if (fileType === 'video') {
-    // 동영상 플레이어
-    const video = document.createElement('video');
-    video.src = fileUrl;
-    video.controls = true;
-    video.autoplay = false;
-    fileContainer.appendChild(video);
-    document.querySelector('h2').textContent = '🎬 동영상 미리보기';
-    
-  } else if (fileType === 'audio') {
-    // 음악 플레이어
-    const audio = document.createElement('audio');
-    audio.src = fileUrl;
-    audio.controls = true;
-    fileContainer.appendChild(audio);
-    document.querySelector('h2').textContent = '🎵 음악 미리보기';
+    // 이미지용 버튼들
+    copyLinkBtn.classList.add('show');
+    downloadBtn.classList.add('show');
+    originalLink.classList.add('show');
+    originalLink.href = fileUrl;
     
   } else {
-    // 기타 파일 - 아이콘 표시
+    // 기타 모든 파일 - 아이콘 + 다운로드 버튼
     const iconDiv = document.createElement('div');
     iconDiv.className = 'file-icon-display';
     iconDiv.innerHTML = `
       <div class="icon">${getFileIcon(fileUrl)}</div>
       <div class="file-name">${fileName}</div>
-      <div class="file-info">미리보기를 지원하지 않는 파일입니다</div>
+      <div class="file-info">다운로드하여 파일을 확인하세요</div>
+      <button class="download-button" id="mainDownloadBtn">💾 다운로드</button>
     `;
     fileContainer.appendChild(iconDiv);
+    
+    // 다운로드 버튼 이벤트
+    document.getElementById('mainDownloadBtn').addEventListener('click', async () => {
+      try {
+        const response = await fetch(fileUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        alert('다운로드 실패');
+      }
+    });
+    
+    // 링크 복사 버튼만 표시
+    copyLinkBtn.classList.add('show');
   }
-
-  // 버튼들 표시
-  copyLinkBtn.classList.add('show');
-  downloadBtn.classList.add('show');
-  originalLink.classList.add('show');
-  originalLink.href = fileUrl;
 
   // 미리보기 링크 복사
   copyLinkBtn.addEventListener('click', () => {
@@ -380,16 +371,25 @@ if(fileUrl){
     });
   });
 
-  // 다운로드
-  downloadBtn.addEventListener('click', () => {
-    const a = document.createElement('a');
-    a.href = fileUrl;
-    a.download = fileName;
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  });
+  // 이미지용 다운로드 (이미지일 때만)
+  if (fileType === 'image') {
+    downloadBtn.addEventListener('click', async () => {
+      try {
+        const response = await fetch(fileUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        alert('다운로드 실패');
+      }
+    });
+  }
   
 } else {
   fileContainer.innerHTML = "<p>❌ 파일 URL이 없습니다.</p>";
