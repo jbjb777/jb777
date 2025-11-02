@@ -334,20 +334,23 @@ if(fileUrl){
     `;
     fileContainer.appendChild(iconDiv);
     
-    // 다운로드 버튼 이벤트 (Cloudinary 형식 수정)
-    document.getElementById('mainDownloadBtn').addEventListener('click', () => {
-      // Cloudinary URL에 fl_attachment 파라미터 추가 (= 사용)
-      const downloadUrl = fileUrl.includes('?') 
-        ? fileUrl + '&fl_attachment=' + encodeURIComponent(fileName)
-        : fileUrl + '?fl_attachment=' + encodeURIComponent(fileName);
-      
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = fileName;
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    // 다운로드 버튼 이벤트 (fetch로 직접 다운로드)
+    document.getElementById('mainDownloadBtn').addEventListener('click', async () => {
+      try {
+        const response = await fetch(fileUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error('다운로드 실패:', error);
+        alert('다운로드 실패: ' + error.message);
+      }
     });
     
     // 링크 복사 버튼만 표시
