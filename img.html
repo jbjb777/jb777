@@ -242,12 +242,17 @@ const linkDisplay = document.getElementById('linkDisplay');
 const openPreviewBtn = document.getElementById('openPreviewBtn');
 const newUploadBtn = document.getElementById('newUploadBtn');
 
+// PDF 파일 체크 함수
+function isPDF(file) {
+  const fileName = file.name.toLowerCase();
+  return fileName.endsWith('.pdf') || file.type === 'application/pdf';
+}
+
 // 파일 타입별 아이콘 가져오기
 function getFileIcon(fileName) {
   const ext = fileName.split('.').pop().toLowerCase();
   const icons = {
     // 문서
-    'pdf': '📄',
     'doc': '📝', 'docx': '📝',
     'txt': '📃',
     'rtf': '📃',
@@ -305,14 +310,27 @@ dropArea.addEventListener('dragleave', e => {
 dropArea.addEventListener('drop', async e => {
   e.preventDefault(); 
   dropArea.style.borderColor = '#555';
-  if(e.dataTransfer.files.length) { 
+  if(e.dataTransfer.files.length) {
+    const file = e.dataTransfer.files[0];
+    if(isPDF(file)) {
+      alert('⚠️ PDF 파일은 업로드할 수 없습니다.');
+      return;
+    }
     fileInput.files = e.dataTransfer.files; 
-    previewFile(e.dataTransfer.files[0]); 
+    previewFile(file); 
   }
 });
 
 fileInput.addEventListener('change', () => { 
-  if(fileInput.files.length) previewFile(fileInput.files[0]); 
+  if(fileInput.files.length) {
+    const file = fileInput.files[0];
+    if(isPDF(file)) {
+      alert('⚠️ PDF 파일은 업로드할 수 없습니다.');
+      fileInput.value = '';
+      return;
+    }
+    previewFile(file); 
+  }
 });
 
 function previewFile(file) {
@@ -346,6 +364,12 @@ function previewFile(file) {
 uploadBtn.addEventListener('click', async () => {
   const file = fileInput.files[0];
   if(!file) return alert('파일을 선택하세요!');
+  
+  // PDF 체크
+  if(isPDF(file)) {
+    alert('⚠️ PDF 파일은 업로드할 수 없습니다.');
+    return;
+  }
 
   // 페이지 2로 전환 (로딩)
   showPage('loading');
