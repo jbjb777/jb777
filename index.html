@@ -326,6 +326,55 @@
 
     .work-card:hover .play-icon { opacity: 1; }
 
+    /* 푸터 스타일 */
+    footer {
+      background: #1e1e1e;
+      padding: 40px 20px 20px;
+      text-align: center;
+      border-top: 1px solid #333;
+    }
+
+    .footer-logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-logos a {
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      display: inline-block;
+    }
+
+    .footer-logos a:hover {
+      transform: translateY(-5px);
+      opacity: 0.8;
+    }
+
+    .footer-logos img {
+      height: 40px;
+      width: auto;
+    }
+
+    .footer-privacy {
+      color: #aaa;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+
+    .footer-privacy a {
+      color: #3663FF;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .footer-privacy a:hover {
+      color: #53b6f9;
+      text-decoration: underline;
+    }
+
     @media (max-width: 1200px) {
       .works-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -365,6 +414,14 @@
       .works-grid { grid-template-columns: 1fr; }
       .featured-works { padding: 40px 20px; }
       .section-title { font-size: 26px; }
+      
+      .footer-logos {
+        gap: 20px;
+      }
+      
+      .footer-logos img {
+        height: 35px;
+      }
     }
   </style>
 </head>
@@ -431,6 +488,29 @@
       </div>
     </section>
   </main>
+
+  <footer>
+    <div class="footer-logos">
+      <a href="https://cloudinary.com" target="_blank">
+        <img src="logo/cloud.png" alt="Cloudinary">
+      </a>
+      <a href="https://naver.me/xAWjFEtu" target="_blank">
+        <img src="logo/Entry.svg" alt="Entry">
+      </a>
+      <a href="https://github.com/jbjb777/jb777" target="_blank">
+        <img src="logo/Github.svg" alt="Github">
+      </a>
+      <a href="https://xn--220b31d95hq8o.xn--3e0b707e" target="_blank">
+        <img src="logo/domainkorea.png" alt="내도메인.한국">
+      </a>
+      <a href="https://search.google.com/search-console/welcome" target="_blank">
+        <img src="logo/google.svg" alt="Google Search Console">
+      </a>
+    </div>
+    <div class="footer-privacy">
+      <a href="https://privacy.jbjb.r-e.kr">개인정보처리방침</a>
+    </div>
+  </footer>
 
   <script>
     // 햄버거 메뉴
