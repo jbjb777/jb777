@@ -31,6 +31,9 @@ function loadHeader() {
         window.location.href = 'chat.html';
       });
 
+      document.getElementById('urlBtn').addEventListener('click', () => {
+        window.location.href = 'https://url.jbjbr-e.kr';
+      });
       // ✅ 햄버거 메뉴 토글 기능 추가
       const menuToggle = document.getElementById('menuToggle');
       const navMenu = document.querySelector('nav');
