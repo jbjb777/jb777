@@ -230,6 +230,58 @@
 <!-- 공통 헤더 JavaScript -->
 <script src="header.js"></script>
 
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB8OHhR0Vjan_nNdCczb5e2bOuDBYYRiIg",
+  authDomain: "urlshare-718c1.firebaseapp.com",
+  databaseURL: "https://urlshare-718c1-default-rtdb.firebaseio.com",
+  projectId: "urlshare-718c1",
+  storageBucket: "urlshare-718c1.firebasestorage.app",
+  messagingSenderId: "666729308999",
+  appId: "1:666729308999:web:a7f6d363e88b1d5ed5a262",
+  measurementId: "G-VZH9BNQ3VR"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+// 짧은 코드 생성 함수
+function generateShortCode() {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// 링크 단축 함수
+async function shortenUrl(longUrl) {
+  const shortCode = generateShortCode();
+  const shortUrl = `${location.origin}/s/${shortCode}`;
+  
+  try {
+    // Firebase에 저장
+    await set(ref(database, 'urls/' + shortCode), {
+      longUrl: longUrl,
+      created: Date.now()
+    });
+    
+    return shortUrl;
+  } catch (error) {
+    console.error('Firebase 저장 실패:', error);
+    throw error;
+  }
+}
+
+// 전역으로 노출
+window.shortenUrl = shortenUrl;
+</script>
+
 <script>
 const dropArea = document.getElementById('dropArea');
 const fileInput = document.getElementById('fileInput');
@@ -398,22 +450,43 @@ uploadBtn.addEventListener('click', async () => {
     
     if(data.secure_url) {
       const previewUrl = `${location.origin}/view.html?img=${encodeURIComponent(data.secure_url)}`;
-      linkDisplay.value = previewUrl;
+      
+      // Firebase로 링크 단축
+      try {
+        const shortUrl = await window.shortenUrl(previewUrl);
+        linkDisplay.value = shortUrl;
+        
+        // 복사 버튼
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(shortUrl).then(() => {
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = "✔";
+            copyBtn.style.background = "#00cc88";
+            setTimeout(() => {
+              copyBtn.textContent = originalText;
+              copyBtn.style.background = "#3663FF";
+            }, 1500);
+          });
+        };
 
-      // 복사 버튼
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(previewUrl).then(() => {
-          const originalText = copyBtn.textContent;
-          copyBtn.textContent = "✔";
-          copyBtn.style.background = "#00cc88";
-          setTimeout(() => {
-            copyBtn.textContent = originalText;
-            copyBtn.style.background = "#3663FF";
-          }, 1500);
-        });
-      };
-
-      openPreviewBtn.onclick = () => window.open(previewUrl, '_blank');
+        openPreviewBtn.onclick = () => window.open(shortUrl, '_blank');
+      } catch(err) {
+        // 단축 실패 시 원본 URL 사용
+        console.error('링크 단축 실패:', err);
+        linkDisplay.value = previewUrl;
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(previewUrl).then(() => {
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = "✔";
+            copyBtn.style.background = "#00cc88";
+            setTimeout(() => {
+              copyBtn.textContent = originalText;
+              copyBtn.style.background = "#3663FF";
+            }, 1500);
+          });
+        };
+        openPreviewBtn.onclick = () => window.open(previewUrl, '_blank');
+      }
 
       // 페이지 3으로 전환 (완료)
       showPage('complete');
