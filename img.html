@@ -262,7 +262,7 @@ function generateShortCode() {
 // 링크 단축 함수
 async function shortenUrl(longUrl) {
   const shortCode = generateShortCode();
-  const shortUrl = `${location.origin}/s/${shortCode}`;
+  const shortUrl = `${location.origin}/view.html?s=${shortCode}`;
   
   try {
     // Firebase에 저장
