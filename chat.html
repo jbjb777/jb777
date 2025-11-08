@@ -74,21 +74,11 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
   display:inline-block;
   width:18px;
   height:18px;
-  background:#FFD700;
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-  position:relative;
   margin-left:5px;
   vertical-align:middle;
-}
-.verification-badge::after {
-  content:'✓';
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%, -50%);
-  color:#000;
-  font-size:11px;
-  font-weight:bold;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ff00ff;stop-opacity:1" /><stop offset="100%" style="stop-color:%23ff0066;stop-opacity:1" /></linearGradient></defs><path fill="url(%23grad)" d="M512 0 L1024 295 L1024 729 L512 1024 L0 729 L0 295 Z"/><path fill="white" d="M256 512 L384 640 L768 256 L832 320 L384 768 L192 576 Z"/></svg>');
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 #chat {
   height:400px; overflow-y:auto; background:#121212;
