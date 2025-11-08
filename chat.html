@@ -69,6 +69,27 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
 }
 #nicknameModal button:hover { transform:translateY(-8px) scale(1.05); }
 #nicknameModal button:active { background:#2952CC; }
+.error-message { color:#ff6b6b; font-size:14px; margin-top:8px; }
+.verification-badge {
+  display:inline-block;
+  width:18px;
+  height:18px;
+  background:#FFD700;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  position:relative;
+  margin-left:5px;
+  vertical-align:middle;
+}
+.verification-badge::after {
+  content:'✓';
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  color:#000;
+  font-size:11px;
+  font-weight:bold;
+}
 #chat {
   height:400px; overflow-y:auto; background:#121212;
   border-radius:12px; padding:10px; margin-bottom:10px;
@@ -157,6 +178,7 @@ h2 { text-align:center; margin-bottom:15px; color:#ffffff; }
 <div id="nicknameModal">
   <h2>✏️ 여기에서 사용할 닉네임을 입력해주세요</h2>
   <input id="nicknameInput" placeholder="닉네임" maxlength="10">
+  <div class="error-message" id="errorMessage"></div>
   <button id="nicknameBtn">확인</button>
 </div>
 
@@ -227,6 +249,9 @@ imgInput.onchange = () => imgUploadBtn.textContent = imgInput.files.length > 0 ?
 cancelReply.onclick = () => { replyTo = null; replyBox.classList.remove("active"); };
 
 let nickname = "";
+let verificationCode = "";
+let isVerifying = false;
+
 window.addEventListener("DOMContentLoaded", () => {
   const saved = localStorage.getItem("chatNickname");
   if (saved) {
@@ -236,16 +261,132 @@ window.addEventListener("DOMContentLoaded", () => {
     userInfo.classList.add("active");
   }
 });
-nicknameBtn.onclick = () => {
+
+async function sendVerificationEmail(code) {
+  try {
+    // FormSubmit.co를 사용한 무료 이메일 발송
+    const formData = new FormData();
+    formData.append('email', 'alexeom97@outlook.com');
+    formData.append('subject', '🔐 정빈777 닉네임 인증 코드');
+    formData.append('message', `
+━━━━━━━━━━━━━━━━━━━━
+  정빈777 닉네임 인증
+━━━━━━━━━━━━━━━━━━━━
+
+요청하신 인증 코드입니다:
+
+    ${code}
+
+이 코드를 채팅 사이트에 입력해주세요.
+
+━━━━━━━━━━━━━━━━━━━━
+본인이 요청하지 않았다면 이 메일을 무시하세요.
+    `);
+    
+    // Web3Forms 무료 서비스 사용 (하루 무제한)
+    // https://web3forms.com 에서 Access Key 발급 필요
+    const response = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        access_key: 'ee27178a-2f7b-4153-a2b4-01d5905a1280',
+        subject: '🔐 정빈777 닉네임 인증 코드',
+        from_name: '정빈777 채팅',
+        to_email: 'alexeom97@outlook.com',
+        message: `
+━━━━━━━━━━━━━━━━━━━━
+  정빈777 닉네임 인증
+━━━━━━━━━━━━━━━━━━━━
+
+요청하신 인증 코드입니다:
+
+    ${code}
+
+이 코드를 채팅 사이트에 입력해주세요.
+
+━━━━━━━━━━━━━━━━━━━━
+본인이 요청하지 않았다면 이 메일을 무시하세요.
+        `
+      })
+    });
+    
+    const result = await response.json();
+    console.log("Email send result:", result);
+    
+    if (result.success) {
+      console.log("✅ 인증 코드 이메일 발송 성공!");
+      return true;
+    } else {
+      throw new Error(result.message || "발송 실패");
+    }
+  } catch (err) {
+    console.error("Email send error:", err);
+    console.log("⚠️ Verification Code (email failed):", code);
+    // 이메일 실패해도 콘솔에서 코드 확인 가능
+    alert(`이메일 발송 실패. 콘솔(F12)에서 인증번호를 확인하세요: ${code}`);
+    return true;
+  }
+}
+
+nicknameBtn.onclick = async () => {
   const val = nicknameInput.value.trim();
-  if (!val) return alert("닉네임을 입력하세요!");
-  if (val.length > 10) return alert("닉네임은 10자 이하로 입력하세요!");
+  const errorMsg = document.getElementById("errorMessage");
+  
+  if (!val) {
+    errorMsg.textContent = "닉네임을 입력하세요!";
+    return;
+  }
+  if (val.length > 10) {
+    errorMsg.textContent = "닉네임은 10자 이하로 입력하세요!";
+    return;
+  }
+  
+  if (val.includes("정빈777") && val !== "정빈777") {
+    errorMsg.textContent = "이 닉네임은 사용할 수 없습니다.";
+    return;
+  }
+  
+  if (val === "정빈777" && !isVerifying) {
+    isVerifying = true;
+    verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    nicknameInput.placeholder = "인증 코드 6자리";
+    nicknameInput.value = "";
+    errorMsg.textContent = "";
+    
+    const h2 = document.querySelector("#nicknameModal h2");
+    h2.textContent = "제작자 이메일로 메일 보냈습니다. 인증번호를 적어주세요";
+    
+    await sendVerificationEmail(verificationCode);
+    console.log("Generated code for 정빈777:", verificationCode);
+    return;
+  }
+  
+  if (isVerifying) {
+    if (val === verificationCode) {
+      nickname = "정빈777";
+      localStorage.setItem("chatNickname", nickname);
+      nicknameModal.style.display = "none";
+      userNickname.textContent = nickname;
+      userInfo.classList.add("active");
+      isVerifying = false;
+      errorMsg.textContent = "";
+    } else {
+      errorMsg.textContent = "인증번호가 맞지 않습니다.";
+    }
+    return;
+  }
+  
   nickname = val;
   localStorage.setItem("chatNickname", nickname);
   nicknameModal.style.display = "none";
   userNickname.textContent = nickname;
   userInfo.classList.add("active");
+  errorMsg.textContent = "";
 };
+
 msgInput.addEventListener("keypress", e => { if (e.key === "Enter") sendBtn.click(); });
 
 function escapeHTML(str) {
@@ -283,7 +424,6 @@ async function uploadToCloudinary(file){
     const data = await res.json();
 
     if (data && data.secure_url) return data.secure_url;
-    // Cloudinary may return an error object
     const errMsg = data && data.error && data.error.message ? data.error.message : "업로드 실패(응답에 secure_url 없음)";
     throw new Error(errMsg);
   } catch (err) {
@@ -299,7 +439,6 @@ sendBtn.onclick=async()=>{
   if(!text && !file) return;
   if(text.length>500) return alert("메시지는 500자 이하로 입력하세요!");
 
-  // 업로드 중 버튼 비활성화
   sendBtn.disabled = true;
   document.body.style.cursor = "wait";
 
@@ -311,7 +450,6 @@ sendBtn.onclick=async()=>{
     }catch(err){
       alert("이미지 업로드 실패: " + (err.message || ""));
       console.error(err);
-      // 업로드 실패 시 버튼 복구
       sendBtn.disabled = false;
       document.body.style.cursor = "default";
       return;
@@ -329,7 +467,6 @@ sendBtn.onclick=async()=>{
     alert("메시지 전송 실패: " + (err.message || ""));
     console.error(err);
   } finally {
-    // 업로드 완료 후 버튼 복구
     sendBtn.disabled = false;
     document.body.style.cursor = "default";
   }
@@ -375,7 +512,16 @@ db.ref("messages").on("value",snap=>{
       div.appendChild(arrow);
     }
     const nick=document.createElement("div");
-    nick.className="nickname"; nick.textContent=m.nickname; div.appendChild(nick);
+    nick.className="nickname"; 
+    nick.textContent=m.nickname;
+    
+    if(m.nickname === "정빈777") {
+      const badge = document.createElement("span");
+      badge.className = "verification-badge";
+      nick.appendChild(badge);
+    }
+    
+    div.appendChild(nick);
 
     const content=document.createElement("div");
     for(const line of m.text.split("\n")){
