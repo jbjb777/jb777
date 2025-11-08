@@ -243,7 +243,11 @@ const messageElements = new Map();
 
 // 글자 수 카운터
 msgInput.addEventListener("input", () => charCount.textContent = msgInput.value.length);
-logoutBtn.onclick = () => { localStorage.removeItem("chatNickname"); location.reload(); };
+logoutBtn.onclick = () => { 
+  localStorage.removeItem("chatNickname");
+  localStorage.removeItem("jungbin777_verified"); // 인증 데이터도 삭제
+  location.reload(); 
+};
 imgUploadBtn.onclick = () => imgInput.click();
 imgInput.onchange = () => imgUploadBtn.textContent = imgInput.files.length > 0 ? "선택됨" : "이미지 업로드";
 cancelReply.onclick = () => { replyTo = null; replyBox.classList.remove("active"); };
@@ -259,8 +263,43 @@ window.addEventListener("DOMContentLoaded", () => {
     nicknameModal.style.display = "none";
     userNickname.textContent = nickname;
     userInfo.classList.add("active");
+    
+    // 정빈777이 포함된 다른 닉네임 체크
+    if (saved.includes("정빈777") && saved !== "정빈777") {
+      showPermanentError("이 닉네임은 사용할 수 없습니다. 로그아웃 후 다시 닉네임을 바꿔주세요.");
+    }
+    // 정빈777인데 인증 데이터가 없는 경우
+    else if (saved === "정빈777" && !localStorage.getItem("jungbin777_verified")) {
+      showPermanentError("제작자 인증이 불가합니다. 로그아웃 후 다시 시도해주세요.");
+    }
   }
 });
+
+function showPermanentError(message) {
+  const errorDiv = document.createElement("div");
+  errorDiv.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 0, 0, 0.95);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10000;
+    box-shadow: 0 4px 20px rgba(255, 0, 0, 0.5);
+    text-align: center;
+  `;
+  errorDiv.textContent = message;
+  document.body.appendChild(errorDiv);
+  
+  // 입력 비활성화
+  msgInput.disabled = true;
+  sendBtn.disabled = true;
+  imgUploadBtn.disabled = true;
+}
 
 async function sendVerificationEmail(code) {
   try {
@@ -368,6 +407,7 @@ nicknameBtn.onclick = async () => {
     if (val === verificationCode) {
       nickname = "정빈777";
       localStorage.setItem("chatNickname", nickname);
+      localStorage.setItem("jungbin777_verified", "true"); // 인증 성공 저장
       nicknameModal.style.display = "none";
       userNickname.textContent = nickname;
       userInfo.classList.add("active");
@@ -436,6 +476,19 @@ sendBtn.onclick=async()=>{
   const text=msgInput.value.trim();
   const file=imgInput.files[0];
   if(!nickname) return alert("닉네임을 먼저 설정하세요!");
+  
+  // 정빈777 인증 체크
+  if (nickname === "정빈777" && !localStorage.getItem("jungbin777_verified")) {
+    alert("제작자 인증이 불가합니다. 로그아웃 후 다시 시도해주세요.");
+    return;
+  }
+  
+  // 정빈777이 포함된 다른 닉네임 체크
+  if (nickname.includes("정빈777") && nickname !== "정빈777") {
+    alert("이 닉네임은 사용할 수 없습니다. 로그아웃 후 다시 닉네임을 바꿔주세요.");
+    return;
+  }
+  
   if(!text && !file) return;
   if(text.length>500) return alert("메시지는 500자 이하로 입력하세요!");
 
