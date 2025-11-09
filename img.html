@@ -66,6 +66,18 @@
   }
   #dropArea p { margin:0; color:#aaa; font-size:16px; }
   
+  .size-limit-text {
+    color: #ff4444;
+    font-size: 14px;
+    margin-top: 10px;
+    font-weight: 500;
+    display: none;
+  }
+  
+  .size-limit-text.show {
+    display: block;
+  }
+  
   #previewContainer { 
     display:none; 
     max-width:90%; 
@@ -186,6 +198,7 @@
       <p>📤 여기에 파일 드래그 또는 클릭</p>
       <input type="file" id="fileInput">
     </div>
+    <p class="size-limit-text">최대 4MB까지 업로드할 수 있습니다</p>
     <div id="previewContainer">
       <img id="previewImg" src="" alt="미리보기" style="display:none;">
       <div id="fileIcon" style="display:none;">
@@ -293,6 +306,7 @@ const copyBtn = document.getElementById('copyBtn');
 const linkDisplay = document.getElementById('linkDisplay');
 const openPreviewBtn = document.getElementById('openPreviewBtn');
 const newUploadBtn = document.getElementById('newUploadBtn');
+const sizeLimitText = document.querySelector('.size-limit-text');
 
 // 최대 파일 크기 (4MB)
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB in bytes
@@ -300,9 +314,11 @@ const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB in bytes
 // 파일 크기 체크 함수
 function checkFileSize(file) {
   if (file.size > MAX_FILE_SIZE) {
-    alert(`⚠️ 파일 크기가 4MB를 초과합니다.\n현재 파일: ${formatFileSize(file.size)}\n최대 허용: 4MB`);
+    sizeLimitText.textContent = '최대 4MB까지 업로드할 수 있습니다';
+    sizeLimitText.classList.add('show');
     return false;
   }
+  sizeLimitText.classList.remove('show');
   return true;
 }
 
@@ -310,6 +326,16 @@ function checkFileSize(file) {
 function isPDF(file) {
   const fileName = file.name.toLowerCase();
   return fileName.endsWith('.pdf') || file.type === 'application/pdf';
+}
+
+// PDF 체크 함수 (에러 메시지 표시)
+function checkPDF(file) {
+  if (isPDF(file)) {
+    sizeLimitText.textContent = 'PDF 파일은 업로드할 수 없습니다';
+    sizeLimitText.classList.add('show');
+    return false;
+  }
+  return true;
 }
 
 // 파일 타입별 아이콘 가져오기
@@ -377,15 +403,16 @@ dropArea.addEventListener('drop', async e => {
   if(e.dataTransfer.files.length) {
     const file = e.dataTransfer.files[0];
     
+    // PDF 체크 먼저
+    if(!checkPDF(file)) {
+      return;
+    }
+    
     // 파일 크기 체크
     if(!checkFileSize(file)) {
       return;
     }
     
-    if(isPDF(file)) {
-      alert('⚠️ PDF 파일은 업로드할 수 없습니다.');
-      return;
-    }
     fileInput.files = e.dataTransfer.files; 
     previewFile(file); 
   }
@@ -395,17 +422,18 @@ fileInput.addEventListener('change', () => {
   if(fileInput.files.length) {
     const file = fileInput.files[0];
     
+    // PDF 체크 먼저
+    if(!checkPDF(file)) {
+      fileInput.value = '';
+      return;
+    }
+    
     // 파일 크기 체크
     if(!checkFileSize(file)) {
       fileInput.value = '';
       return;
     }
     
-    if(isPDF(file)) {
-      alert('⚠️ PDF 파일은 업로드할 수 없습니다.');
-      fileInput.value = '';
-      return;
-    }
     previewFile(file); 
   }
 });
@@ -440,16 +468,19 @@ function previewFile(file) {
 // 업로드 버튼
 uploadBtn.addEventListener('click', async () => {
   const file = fileInput.files[0];
-  if(!file) return alert('파일을 선택하세요!');
-  
-  // 파일 크기 체크
-  if(!checkFileSize(file)) {
+  if(!file) {
+    sizeLimitText.textContent = '파일을 선택하세요';
+    sizeLimitText.classList.add('show');
     return;
   }
   
-  // PDF 체크
-  if(isPDF(file)) {
-    alert('⚠️ PDF 파일은 업로드할 수 없습니다.');
+  // PDF 체크 먼저
+  if(!checkPDF(file)) {
+    return;
+  }
+  
+  // 파일 크기 체크
+  if(!checkFileSize(file)) {
     return;
   }
 
@@ -537,6 +568,7 @@ newUploadBtn.addEventListener('click', () => {
   previewImg.src = '';
   fileIcon.style.display = 'none';
   linkDisplay.value = '';
+  sizeLimitText.classList.remove('show');
   showPage('upload');
 });
 </script>
