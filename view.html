@@ -63,6 +63,153 @@
     box-shadow: 0 8px 25px rgba(54,99,255,0.3); 
   }
 
+  /* 비디오 플레이어 스타일 */
+  .video-player-wrapper {
+    position: relative;
+    max-width: 90vw;
+    max-height: 60vh;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(54,99,255,0.3);
+  }
+
+  .video-player-wrapper video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: #000;
+  }
+
+  .video-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    padding: 20px 15px 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .video-player-wrapper:hover .video-controls {
+    opacity: 1;
+  }
+
+  .play-pause-btn {
+    background: #3663FF;
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .play-pause-btn:hover {
+    background: #4d7aff;
+    transform: scale(1.1);
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: #3663FF;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  .time-display {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .volume-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .volume-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px;
+    transition: transform 0.2s ease;
+  }
+
+  .volume-btn:hover {
+    transform: scale(1.1);
+  }
+
+  .volume-slider {
+    width: 70px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    outline: none;
+  }
+
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #3663FF;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #3663FF;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+
+  .fullscreen-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .fullscreen-btn:hover {
+    transform: scale(1.1);
+  }
+
   .file-icon-display { text-align: center; padding: 40px; }
   .file-icon-display .icon { font-size: 120px; margin-bottom: 20px; animation: fadeIn 0.3s ease-in; }
   .file-icon-display .file-name { color: #aaa; font-size: 18px; word-break: break-all; margin-bottom: 10px; }
@@ -138,11 +285,13 @@
   @media (max-width: 800px) {
     #container { padding: 30px 20px; margin: 15px; }
     h2 { font-size: 24px; margin-bottom: 20px; }
-    #fileContainer img, #fileContainer video { max-height: 50vh; }
+    #fileContainer img, .video-player-wrapper { max-height: 50vh; }
     #fileContainer iframe { width: 95vw; height: 60vh; }
     .file-icon-display .icon { font-size: 80px; }
     .button-container { flex-direction: column; width: 100%; }
     .action-button { width: 100%; }
+    .volume-slider { width: 50px; }
+    .time-display { font-size: 12px; }
   }
 </style>
 </head>
@@ -266,6 +415,8 @@ function getFileType(url) {
   const ext = url.split('.').pop().split('?')[0].toLowerCase();
   if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) {
     return 'image';
+  } else if (['mp4', 'webm', 'avi', 'mov', 'mkv', 'flv', 'wmv'].includes(ext)) {
+    return 'video';
   } else {
     return 'other';
   }
@@ -281,6 +432,143 @@ function getFileName(url) {
   } catch {
     return '파일';
   }
+}
+
+// 시간 포맷 함수
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// 비디오 플레이어 생성 함수
+function createVideoPlayer(videoUrl) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'video-player-wrapper';
+  
+  const video = document.createElement('video');
+  video.src = videoUrl;
+  video.preload = 'metadata';
+  
+  const controls = document.createElement('div');
+  controls.className = 'video-controls';
+  
+  const playPauseBtn = document.createElement('button');
+  playPauseBtn.className = 'play-pause-btn';
+  playPauseBtn.innerHTML = '▶';
+  
+  const progressBar = document.createElement('div');
+  progressBar.className = 'progress-bar';
+  const progressFill = document.createElement('div');
+  progressFill.className = 'progress-bar-fill';
+  progressBar.appendChild(progressFill);
+  
+  const timeDisplay = document.createElement('div');
+  timeDisplay.className = 'time-display';
+  timeDisplay.textContent = '0:00 / 0:00';
+  
+  const volumeControl = document.createElement('div');
+  volumeControl.className = 'volume-control';
+  
+  const volumeBtn = document.createElement('button');
+  volumeBtn.className = 'volume-btn';
+  volumeBtn.innerHTML = '🔊';
+  
+  const volumeSlider = document.createElement('input');
+  volumeSlider.type = 'range';
+  volumeSlider.className = 'volume-slider';
+  volumeSlider.min = '0';
+  volumeSlider.max = '100';
+  volumeSlider.value = '100';
+  
+  volumeControl.appendChild(volumeBtn);
+  volumeControl.appendChild(volumeSlider);
+  
+  const fullscreenBtn = document.createElement('button');
+  fullscreenBtn.className = 'fullscreen-btn';
+  fullscreenBtn.innerHTML = '⛶';
+  
+  controls.appendChild(playPauseBtn);
+  controls.appendChild(progressBar);
+  controls.appendChild(timeDisplay);
+  controls.appendChild(volumeControl);
+  controls.appendChild(fullscreenBtn);
+  
+  wrapper.appendChild(video);
+  wrapper.appendChild(controls);
+  
+  // 재생/일시정지
+  playPauseBtn.addEventListener('click', () => {
+    if (video.paused) {
+      video.play();
+      playPauseBtn.innerHTML = '⏸';
+    } else {
+      video.pause();
+      playPauseBtn.innerHTML = '▶';
+    }
+  });
+  
+  // 비디오 클릭으로도 재생/일시정지
+  video.addEventListener('click', () => {
+    playPauseBtn.click();
+  });
+  
+  // 진행바 업데이트
+  video.addEventListener('timeupdate', () => {
+    const percent = (video.currentTime / video.duration) * 100;
+    progressFill.style.width = percent + '%';
+    timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+  });
+  
+  // 진행바 클릭
+  progressBar.addEventListener('click', (e) => {
+    const rect = progressBar.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    video.currentTime = percent * video.duration;
+  });
+  
+  // 볼륨 조절
+  volumeSlider.addEventListener('input', (e) => {
+    video.volume = e.target.value / 100;
+    if (video.volume === 0) {
+      volumeBtn.innerHTML = '🔇';
+    } else if (video.volume < 0.5) {
+      volumeBtn.innerHTML = '🔉';
+    } else {
+      volumeBtn.innerHTML = '🔊';
+    }
+  });
+  
+  // 음소거 버튼
+  volumeBtn.addEventListener('click', () => {
+    if (video.volume > 0) {
+      video.volume = 0;
+      volumeSlider.value = 0;
+      volumeBtn.innerHTML = '🔇';
+    } else {
+      video.volume = 1;
+      volumeSlider.value = 100;
+      volumeBtn.innerHTML = '🔊';
+    }
+  });
+  
+  // 전체화면
+  fullscreenBtn.addEventListener('click', () => {
+    if (wrapper.requestFullscreen) {
+      wrapper.requestFullscreen();
+    } else if (wrapper.webkitRequestFullscreen) {
+      wrapper.webkitRequestFullscreen();
+    } else if (wrapper.msRequestFullscreen) {
+      wrapper.msRequestFullscreen();
+    }
+  });
+  
+  // 비디오 종료시
+  video.addEventListener('ended', () => {
+    playPauseBtn.innerHTML = '▶';
+  });
+  
+  return wrapper;
 }
 
 // 파일 로드 함수
@@ -299,6 +587,17 @@ window.loadFile = function(fileUrl) {
     document.querySelector('h2').textContent = '🖼️ 이미지 미리보기';
 
     // 이미지용 버튼들
+    copyLinkBtn.classList.add('show');
+    downloadBtn.classList.add('show');
+    originalLink.classList.add('show');
+    originalLink.href = fileUrl;
+  } else if (fileType === 'video') {
+    // 비디오 플레이어 표시
+    const videoPlayer = createVideoPlayer(fileUrl);
+    fileContainer.appendChild(videoPlayer);
+    document.querySelector('h2').textContent = '🎬 비디오 미리보기';
+    
+    // 비디오용 버튼들
     copyLinkBtn.classList.add('show');
     downloadBtn.classList.add('show');
     originalLink.classList.add('show');
@@ -353,8 +652,8 @@ window.loadFile = function(fileUrl) {
     });
   });
 
-  // 이미지용 다운로드
-  if (fileType === 'image') {
+  // 이미지/비디오용 다운로드
+  if (fileType === 'image' || fileType === 'video') {
     downloadBtn.addEventListener('click', async () => {
       try {
         const response = await fetch(fileUrl);
