@@ -727,20 +727,9 @@
           
           // 현재 숫자로 이동
           const targetDigit = parseInt(char);
-          // 초기 로드 시에는 애니메이션 없이 바로 이동
-          if (!isInitialized) {
-            digitWrapper.style.transition = 'none';
+          setTimeout(() => {
             digitWrapper.style.transform = `translateY(-${targetDigit * 50}px)`;
-            // 다음 이벤트 루프에서 transition을 다시 활성화하여 update 시 애니메이션 적용
-            setTimeout(() => {
-              digitWrapper.style.transition = 'transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)';
-            }, 50);
-          } else {
-            // isInitialized가 true일 때만 애니메이션 적용
-            setTimeout(() => {
-              digitWrapper.style.transform = `translateY(-${targetDigit * 50}px)`;
-            }, i * 50); // 각 자리수마다 시간차를 두고 애니메이션
-          }
+          }, i * 50); // 각 자리수마다 시간차를 두고 애니메이션
         }
       }
     }
@@ -776,10 +765,28 @@
 
     // Firebase에서 채팅 개수 가져오기
     let previousCount = 0;
-    const     let previousCount = 0;
     const chatCountElement = document.getElementById('chatCount');
     let isInitialized = false;
     let actualCount = 0;
+    let hasAnimated = false;
+
+    // Intersection Observer로 섹션이 보일 때 감지
+    const chatStatsSection = document.querySelector('.chat-stats');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !hasAnimated && actualCount > 0) {
+          // 섹션이 화면에 보이면 애니메이션 시작
+          createSlotMachineNumber(chatCountElement, actualCount);
+          isInitialized = true;
+          previousCount = actualCount;
+          hasAnimated = true;
+        }
+      });
+    }, {
+      threshold: 0.3 // 섹션의 30%가 보이면 트리거
+    });
+
+    observer.observe(chatStatsSection);
 
     db.ref("messages").on("value", (snapshot) => {
       const data = snapshot.val();
@@ -787,16 +794,31 @@
       actualCount = count;
       
       if (!isInitialized) {
-        // 초기 로드 시에는 실제 값으로 애니메이션 시작
-        createSlotMachineNumber(chatCountElement, actualCount);
-        isInitialized = true;
-        previousCount = actualCount;
-      } else {
-        // 이후 업데이트 시에는 업데이트 애니메이션 실행
-        updateSlotMachineNumber(chatCountElement, previousCount, actualCount);
-        previousCount = actualCount;
+        // 아직 초기화되지 않았으면 000으로 표시
+        chatCountElement.innerHTML = '';
+        const zeroStr = '000';
+        for (let char of zeroStr) {
+          const digitContainer = document.createElement('div');
+          digitContainer.className = 'digit-container';
+          
+          const digitWrapper = document.createElement('div');
+          digitWrapper.className = 'digit-wrapper';
+          
+          for (let j = 0; j <= 9; j++) {
+            const digit = document.createElement('div');
+            digit.className = 'digit';
+            digit.textContent = j;
+            digitWrapper.appendChild(digit);
+          }
+          
+          digitContainer.appendChild(digitWrapper);
+          chatCountElement.appendChild(digitContainer);
+        }
+      } else if (count !== previousCount) {
+        // 이미 초기화되었고 숫자가 변경될 때
+        updateSlotMachineNumber(chatCountElement, previousCount, count);
+        previousCount = count;
       }
-    });  }
     });
 
     // 햄버거 메뉴
