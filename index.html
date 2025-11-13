@@ -224,6 +224,88 @@
       border-radius: 6px;
     }
 
+    /* 채팅 통계 섹션 */
+    .chat-stats {
+      padding: 40px 40px 20px;
+      background: #121212;
+      display: flex;
+      justify-content: center;
+    }
+
+    .stat-container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: linear-gradient(135deg, #2a2a2a, #1e1e1e);
+      padding: 30px 50px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(54, 99, 255, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(54, 99, 255, 0.4);
+    }
+
+    .stat-icon {
+      font-size: 48px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .stat-label {
+      font-size: 16px;
+      color: #aaa;
+      font-weight: 500;
+    }
+
+    .stat-number {
+      font-size: 42px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #3663FF, #53b6f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+    }
+
+    .chat-link-btn {
+      background: #3663FF;
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      padding: 12px 24px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), box-shadow 0.3s ease;
+      white-space: nowrap;
+      margin-left: 10px;
+      box-shadow: 0 4px 15px rgba(54, 99, 255, 0.3);
+    }
+
+    .chat-link-btn:hover {
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(54, 99, 255, 0.5);
+    }
+
+    .chat-link-btn:active {
+      background: #2952CC;
+      transform: translateY(-2px) scale(1.02);
+    }
+
     /* 대표 작품들 섹션 */
     .featured-works {
       padding: 60px 40px;
@@ -406,6 +488,25 @@
       .arrow.left { left: 10px; }
       .arrow.right { right: 10px; }
       
+      .chat-stats { padding: 30px 20px 20px; }
+      
+      .stat-container {
+        padding: 25px 35px;
+        gap: 15px;
+      }
+      
+      .stat-icon { font-size: 36px; }
+      
+      .stat-label { font-size: 14px; }
+      
+      .stat-number { font-size: 32px; }
+      
+      .chat-link-btn {
+        font-size: 14px;
+        padding: 10px 20px;
+        margin-left: 5px;
+      }
+      
       .works-grid { grid-template-columns: 1fr; }
       .featured-works { padding: 40px 20px; }
       .section-title { font-size: 26px; }
@@ -462,6 +563,18 @@
       </div>
     </div>
 
+    <!-- 채팅 통계 섹션 -->
+    <section class="chat-stats">
+      <div class="stat-container">
+        <div class="stat-icon">💬</div>
+        <div class="stat-content">
+          <div class="stat-label">채팅 누적 수</div>
+          <div class="stat-number" id="chatCount">0</div>
+        </div>
+        <button class="chat-link-btn" id="goToChatBtn">🚀 채팅 바로가기</button>
+      </div>
+    </section>
+
     <section class="featured-works">
       <h2 class="section-title">대표 작품들</h2>
       <div class="works-grid">
@@ -508,7 +621,58 @@
     </div>
   </footer>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
   <script>
+    // Firebase 초기화
+    const firebaseConfig = {
+      apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
+      authDomain: "chat-6086d.firebaseapp.com",
+      databaseURL: "https://chat-6086d-default-rtdb.firebaseio.com",
+      projectId: "chat-6086d",
+      storageBucket: "chat-6086d.firebasestorage.app",
+      messagingSenderId: "1050767904189",
+      appId: "1:1050767904189:web:8f23809cbccd9c98c256d4"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 롤링 숫자 애니메이션 함수
+    function animateNumber(element, start, end, duration) {
+      const range = end - start;
+      const increment = range / (duration / 16); // 60fps 기준
+      let current = start;
+      
+      const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+          current = end;
+          clearInterval(timer);
+        }
+        element.textContent = Math.floor(current).toLocaleString();
+      }, 16);
+    }
+
+    // Firebase에서 채팅 개수 가져오기
+    let previousCount = 0;
+    const chatCountElement = document.getElementById('chatCount');
+
+    db.ref("messages").on("value", (snapshot) => {
+      const data = snapshot.val();
+      const count = data ? Object.keys(data).length : 0;
+      
+      // 처음 로드시 또는 숫자가 변경될 때 애니메이션 실행
+      if (previousCount === 0) {
+        animateNumber(chatCountElement, 0, count, 1500);
+      } else if (count !== previousCount) {
+        animateNumber(chatCountElement, previousCount, count, 800);
+      }
+      
+      previousCount = count;
+    });
+
     // 햄버거 메뉴
     const menuToggle = document.getElementById('menuToggle');
     const navMenu = document.getElementById('navMenu');
@@ -523,6 +687,9 @@
     document.getElementById('imgBtn').addEventListener('click', () => window.location.href = 'img.html');
     document.getElementById('chatBtn').addEventListener('click', () => window.location.href = 'chat.html');
     document.getElementById('urlBtn').addEventListener('click', () => window.location.href = 'https://url.jbjb.r-e.kr');
+    
+    // 채팅 바로가기 버튼
+    document.getElementById('goToChatBtn').addEventListener('click', () => window.location.href = 'chat.html');
 
     // 슬라이더 기능
     const slides = document.getElementById('slides');
