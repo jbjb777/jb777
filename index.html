@@ -279,6 +279,49 @@
       background-clip: text;
       font-family: 'Courier New', monospace;
       letter-spacing: 2px;
+      display: flex;
+      gap: 2px;
+      overflow: hidden;
+      height: 50px;
+      align-items: center;
+    }
+
+    .digit-container {
+      display: inline-flex;
+      flex-direction: column;
+      height: 50px;
+      overflow: hidden;
+      position: relative;
+      width: 28px;
+      text-align: center;
+    }
+
+    .digit-wrapper {
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+      position: relative;
+    }
+
+    .digit {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #3663FF, #53b6f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .comma {
+      background: linear-gradient(135deg, #3663FF, #53b6f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      height: 50px;
+      display: flex;
+      align-items: center;
     }
 
     .chat-link-btn {
@@ -499,7 +542,19 @@
       
       .stat-label { font-size: 14px; }
       
-      .stat-number { font-size: 32px; }
+      .stat-number { 
+        font-size: 32px; 
+        height: 38px;
+      }
+      
+      .digit-container {
+        height: 38px;
+        width: 22px;
+      }
+      
+      .digit, .comma {
+        height: 38px;
+      }
       
       .chat-link-btn {
         font-size: 14px;
@@ -639,38 +694,131 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 롤링 숫자 애니메이션 함수
-    function animateNumber(element, start, end, duration) {
-      const range = end - start;
-      const increment = range / (duration / 16); // 60fps 기준
-      let current = start;
+    // 롤링 숫자 애니메이션 함수 (슬롯머신 스타일)
+    function createSlotMachineNumber(container, number) {
+      const numStr = number.toLocaleString();
+      container.innerHTML = '';
       
-      const timer = setInterval(() => {
-        current += increment;
-        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-          current = end;
-          clearInterval(timer);
+      for (let i = 0; i < numStr.length; i++) {
+        const char = numStr[i];
+        
+        if (char === ',') {
+          const comma = document.createElement('span');
+          comma.className = 'comma';
+          comma.textContent = ',';
+          container.appendChild(comma);
+        } else {
+          const digitContainer = document.createElement('div');
+          digitContainer.className = 'digit-container';
+          
+          const digitWrapper = document.createElement('div');
+          digitWrapper.className = 'digit-wrapper';
+          
+          // 0-9까지 모든 숫자 생성
+          for (let j = 0; j <= 9; j++) {
+            const digit = document.createElement('div');
+            digit.className = 'digit';
+            digit.textContent = j;
+            digitWrapper.appendChild(digit);
+          }
+          
+          digitContainer.appendChild(digitWrapper);
+          container.appendChild(digitContainer);
+          
+          // 현재 숫자로 이동
+          const targetDigit = parseInt(char);
+          setTimeout(() => {
+            digitWrapper.style.transform = `translateY(-${targetDigit * 50}px)`;
+          }, i * 50); // 각 자리수마다 시간차를 두고 애니메이션
         }
-        element.textContent = Math.floor(current).toLocaleString();
-      }, 16);
+      }
+    }
+
+    function updateSlotMachineNumber(container, oldNumber, newNumber) {
+      const oldStr = oldNumber.toLocaleString();
+      const newStr = newNumber.toLocaleString();
+      
+      // 자릿수가 변경된 경우 전체 재생성
+      if (oldStr.replace(/,/g, '').length !== newStr.replace(/,/g, '').length) {
+        createSlotMachineNumber(container, newNumber);
+        return;
+      }
+      
+      const digitContainers = container.querySelectorAll('.digit-container');
+      let digitIndex = 0;
+      
+      for (let i = 0; i < newStr.length; i++) {
+        const char = newStr[i];
+        
+        if (char !== ',') {
+          const targetDigit = parseInt(char);
+          const digitWrapper = digitContainers[digitIndex].querySelector('.digit-wrapper');
+          
+          setTimeout(() => {
+            digitWrapper.style.transform = `translateY(-${targetDigit * 50}px)`;
+          }, digitIndex * 50);
+          
+          digitIndex++;
+        }
+      }
     }
 
     // Firebase에서 채팅 개수 가져오기
     let previousCount = 0;
     const chatCountElement = document.getElementById('chatCount');
+    let isInitialized = false;
+    let actualCount = 0;
+    let hasAnimated = false;
+
+    // Intersection Observer로 섹션이 보일 때 감지
+    const chatStatsSection = document.querySelector('.chat-stats');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !hasAnimated && actualCount > 0) {
+          // 섹션이 화면에 보이면 애니메이션 시작
+          createSlotMachineNumber(chatCountElement, actualCount);
+          isInitialized = true;
+          previousCount = actualCount;
+          hasAnimated = true;
+        }
+      });
+    }, {
+      threshold: 0.3 // 섹션의 30%가 보이면 트리거
+    });
+
+    observer.observe(chatStatsSection);
 
     db.ref("messages").on("value", (snapshot) => {
       const data = snapshot.val();
       const count = data ? Object.keys(data).length : 0;
+      actualCount = count;
       
-      // 처음 로드시 또는 숫자가 변경될 때 애니메이션 실행
-      if (previousCount === 0) {
-        animateNumber(chatCountElement, 0, count, 1500);
+      if (!isInitialized) {
+        // 아직 초기화되지 않았으면 000으로 표시
+        chatCountElement.innerHTML = '';
+        const zeroStr = '000';
+        for (let char of zeroStr) {
+          const digitContainer = document.createElement('div');
+          digitContainer.className = 'digit-container';
+          
+          const digitWrapper = document.createElement('div');
+          digitWrapper.className = 'digit-wrapper';
+          
+          for (let j = 0; j <= 9; j++) {
+            const digit = document.createElement('div');
+            digit.className = 'digit';
+            digit.textContent = j;
+            digitWrapper.appendChild(digit);
+          }
+          
+          digitContainer.appendChild(digitWrapper);
+          chatCountElement.appendChild(digitContainer);
+        }
       } else if (count !== previousCount) {
-        animateNumber(chatCountElement, previousCount, count, 800);
+        // 이미 초기화되었고 숫자가 변경될 때
+        updateSlotMachineNumber(chatCountElement, previousCount, count);
+        previousCount = count;
       }
-      
-      previousCount = count;
     });
 
     // 햄버거 메뉴
