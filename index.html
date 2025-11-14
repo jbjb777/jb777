@@ -23,30 +23,17 @@
   <path fill="%23fff" filter="url(%23filter1)" d="M 1137 506 C 1252 449 1369 497 1427 625 L 1459 696 C 1484 752 1488 821 1471 878 L 1472 877 C 1535 891 1581 939 1608 997 L 1632 1052 C 1698 1199 1657 1324 1544 1381 L 1175 1565 L 972 1114 C 1002 1241 946 1377 834 1433 L 776 1462 C 654 1523 518 1467 449 1343 L 596 1269 C 625 1309 663 1331 708 1308 L 758 1283 C 813 1256 830 1185 802 1124 L 525 509 L 672 435 L 784 683 L 1137 506 Z M 1444 1232 C 1488 1210 1504 1149 1480 1095 L 1476 1085 C 1452 1033 1397 1007 1353 1029 L 1151 1130 L 1242 1333 L 1444 1232 Z M 1184 679 L 991 775 L 1084 981 L 1276 885 C 1319 864 1336 802 1312 749 L 1306 736 C 1283 684 1226 658 1184 679 Z"/>
 </svg>' />
 
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>정빈777 - 홈</title> 
-
-
   <meta name="description" content="정빈777의 공식 웹사이트입니다. 채팅, 이미지 업로드, 프로젝트 등 다양한 기능을 제공합니다." />
   <meta name="keywords" content="정빈777, jbjb, jbjb.r-e.kr, 정빈, 채팅, 이미지 업로드, 엔트리, 프로젝트" />
   <meta name="author" content="정빈777" />
   <meta name="robots" content="index, follow">
 
-  
-
-
-  
   <meta property="og:title" content="정빈777 - jbjb.r-e.kr">
   <meta property="og:description" content="정빈777의 공식 웹사이트입니다. 채팅, 이미지 업로드, 프로젝트 등 다양한 기능 제공.">
   <meta property="og:url" content="https://jbjb.r-e.kr">
   <meta property="og:image" content="https://jbjb.r-e.kr/logo.svg">
   <meta property="og:type" content="website">
 
-  
-
-
-  
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -60,8 +47,6 @@
     ]
   }
   </script>
-
-
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -224,12 +209,14 @@
       border-radius: 6px;
     }
 
-    /* 채팅 통계 섹션 */
-    .chat-stats {
+    /* 통계 섹션 */
+    .stats-section {
       padding: 40px 40px 20px;
       background: #121212;
       display: flex;
       justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
     }
 
     .stat-container {
@@ -324,7 +311,7 @@
       align-items: center;
     }
 
-    .chat-link-btn {
+    .stat-link-btn {
       background: #3663FF;
       color: #fff;
       border: none;
@@ -339,12 +326,12 @@
       box-shadow: 0 4px 15px rgba(54, 99, 255, 0.3);
     }
 
-    .chat-link-btn:hover {
+    .stat-link-btn:hover {
       transform: translateY(-4px) scale(1.05);
       box-shadow: 0 8px 25px rgba(54, 99, 255, 0.5);
     }
 
-    .chat-link-btn:active {
+    .stat-link-btn:active {
       background: #2952CC;
       transform: translateY(-2px) scale(1.02);
     }
@@ -531,7 +518,11 @@
       .arrow.left { left: 10px; }
       .arrow.right { right: 10px; }
       
-      .chat-stats { padding: 30px 20px 20px; }
+      .stats-section { 
+        padding: 30px 20px 20px;
+        flex-direction: column;
+        gap: 20px;
+      }
       
       .stat-container {
         padding: 25px 35px;
@@ -556,7 +547,7 @@
         height: 38px;
       }
       
-      .chat-link-btn {
+      .stat-link-btn {
         font-size: 14px;
         padding: 10px 20px;
         margin-left: 5px;
@@ -618,14 +609,23 @@
       </div>
     </div>
 
-    <section class="chat-stats">
+    <section class="stats-section">
       <div class="stat-container">
         <div class="stat-icon">💬</div>
         <div class="stat-content">
           <div class="stat-label">채팅 누적 수</div>
           <div class="stat-number" id="chatCount">0</div>
         </div>
-        <button class="chat-link-btn" id="goToChatBtn">🚀 채팅 바로가기</button>
+        <button class="stat-link-btn" id="goToChatBtn">🚀 채팅 바로가기</button>
+      </div>
+
+      <div class="stat-container">
+        <div class="stat-icon">🔗</div>
+        <div class="stat-content">
+          <div class="stat-label">단축링크 누적 수</div>
+          <div class="stat-number" id="urlCount">0</div>
+        </div>
+        <button class="stat-link-btn" id="goToUrlBtn">🚀 URL 단축하기</button>
       </div>
     </section>
 
@@ -678,9 +678,9 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-  <script>
-    // Firebase 초기화
-    const firebaseConfig = {
+  <script type="module">
+    // 채팅 Firebase 초기화
+    const chatFirebaseConfig = {
       apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
       authDomain: "chat-6086d.firebaseapp.com",
       databaseURL: "https://chat-6086d-default-rtdb.firebaseio.com",
@@ -689,16 +689,33 @@
       messagingSenderId: "1050767904189",
       appId: "1:1050767904189:web:8f23809cbccd9c98c256d4"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const chatApp = firebase.initializeApp(chatFirebaseConfig, "chat");
+    const chatDb = firebase.database(chatApp);
 
-    // 롤링 숫자 애니메이션 함수 (슬롯머신 스타일)
+    // URL 단축 Firebase 초기화
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    
+    const urlFirebaseConfig = {
+      apiKey: "AIzaSyB8OHhR0Vjan_nNdCczb5e2bOuDBYYRiIg",
+      authDomain: "urlshare-718c1.firebaseapp.com",
+      databaseURL: "https://urlshare-718c1-default-rtdb.firebaseio.com",
+      projectId: "urlshare-718c1",
+      storageBucket: "urlshare-718c1.firebasestorage.app",
+      messagingSenderId: "666729308999",
+      appId: "1:666729308999:web:a7f6d363e88b1d5ed5a262",
+      measurementId: "G-VZH9BNQ3VR"
+    };
+    
+    const urlApp = initializeApp(urlFirebaseConfig);
+    const urlDb = getDatabase(urlApp);
+
+    // 롤링 숫자 애니메이션 함수
     function createSlotMachineNumber(container, number) {
       const numStr = number.toLocaleString();
       container.innerHTML = '';
       
-      // 높이 계산을 위한 스타일 시트로부터 값 가져오기 (CSS 변수가 아닌 경우 직접 지정)
-      const digitHeight = 50; 
+      const digitHeight = 50;
       
       for (let i = 0; i < numStr.length; i++) {
         const char = numStr[i];
@@ -715,7 +732,6 @@
           const digitWrapper = document.createElement('div');
           digitWrapper.className = 'digit-wrapper';
           
-          // 0-9까지 모든 숫자 생성
           for (let j = 0; j <= 9; j++) {
             const digit = document.createElement('div');
             digit.className = 'digit';
@@ -723,245 +739,4 @@
             digitWrapper.appendChild(digit);
           }
           
-          digitContainer.appendChild(digitWrapper);
-          container.appendChild(digitContainer);
-          
-          // 현재 숫자로 이동 (애니메이션 적용)
-          const targetDigit = parseInt(char);
-          // 0.5초의 딜레이를 주어 부드러운 초기 애니메이션
-          setTimeout(() => {
-            digitWrapper.style.transform = `translateY(-${targetDigit * digitHeight}px)`;
-          }, 500 + i * 50); 
-        }
-      }
-    }
-
-    function updateSlotMachineNumber(container, oldNumber, newNumber) {
-      const oldStr = oldNumber.toLocaleString().replace(/,/g, '');
-      const newStr = newNumber.toLocaleString().replace(/,/g, '');
-      
-      // 자릿수가 변경된 경우 전체 재생성
-      if (oldStr.length !== newStr.length) {
-        createSlotMachineNumber(container, newNumber);
-        return;
-      }
-      
-      const digitContainers = container.querySelectorAll('.digit-container');
-      const digitHeight = 50; // CSS에서 설정한 높이와 일치해야 함
-      let digitIndex = 0;
-      
-      for (let i = 0; i < newStr.length; i++) {
-        const char = newStr[i];
-        
-        if (char !== ',') {
-          const targetDigit = parseInt(char);
-          
-          // 콤마를 건너뛰고 실제 숫자 컨테이너를 찾음
-          if (digitIndex < digitContainers.length) {
-            const digitWrapper = digitContainers[digitIndex].querySelector('.digit-wrapper');
-            
-            // 기존 숫자가 다르거나 콤마가 없는 경우에만 업데이트
-            if (digitWrapper) {
-                // 숫자가 변경되었을 때만 애니메이션 적용
-                const currentTransform = digitWrapper.style.transform;
-                const targetTransform = `translateY(-${targetDigit * digitHeight}px)`;
-
-                if (currentTransform !== targetTransform) {
-                    setTimeout(() => {
-                        digitWrapper.style.transform = targetTransform;
-                    }, digitIndex * 50);
-                }
-            }
-          }
-          digitIndex++;
-        }
-      }
-    }
-
-    // Firebase에서 채팅 개수 가져오기
-    let previousCount = 0;
-    const chatCountElement = document.getElementById('chatCount');
-    let hasAnimated = false; // 최초 애니메이션이 실행되었는지 확인하는 플래그
-    let actualCount = 0; // Firebase에서 가져온 실제 숫자
-
-    // Intersection Observer로 섹션이 보일 때 감지
-    const chatStatsSection = document.querySelector('.chat-stats');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !hasAnimated) {
-          // 섹션이 화면에 보이고, 아직 애니메이션이 실행되지 않았다면
-          if (actualCount >= 0) {
-            createSlotMachineNumber(chatCountElement, actualCount);
-            previousCount = actualCount;
-            hasAnimated = true;
-          }
-        }
-      });
-    }, {
-      threshold: 0.3 // 섹션의 30%가 보이면 트리거
-    });
-
-    observer.observe(chatStatsSection);
-
-    // 초기 상태: 0으로 된 슬롯 머신 UI를 미리 생성 (Intersection Observer 대기)
-    createSlotMachineNumber(chatCountElement, 0);
-
-
-    db.ref("messages").on("value", (snapshot) => {
-      const data = snapshot.val();
-      const count = data ? Object.keys(data).length : 0;
-      actualCount = count;
-      
-      if (hasAnimated && count !== previousCount) {
-        // 이미 애니메이션이 실행되었고 숫자가 변경될 때
-        updateSlotMachineNumber(chatCountElement, previousCount, count);
-        previousCount = count;
-      } else if (hasAnimated && count === previousCount) {
-        // 이미 애니메이션이 실행되었고 숫자는 그대로일 때 (최초 로딩 후 업데이트 시)
-        // 아무것도 하지 않음.
-      } else if (!hasAnimated) {
-        // 아직 애니메이션이 실행되지 않았고 Firebase 데이터가 로드되었을 때
-        // Intersection Observer가 감지되면 애니메이션이 시작됨.
-        // 이때 `actualCount`는 최신 데이터로 업데이트 되어 있음.
-      }
-    });
-
-    // 햄버거 메뉴
-    const menuToggle = document.getElementById('menuToggle');
-    const navMenu = document.getElementById('navMenu');
-    menuToggle.addEventListener('click', () => {
-      navMenu.classList.toggle('active');
-    });
-
-    // 상단 버튼 이벤트
-    document.getElementById('openLinkBtn1').addEventListener('click', () => window.open('https://naver.me/xAWjFEtu', '_blank'));
-    document.getElementById('openLinkBtn2').addEventListener('click', () => window.location.href = 'gifsvg.html');
-    document.getElementById('openLinkBtn3').addEventListener('click', () => window.location.href = 'https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82');
-    document.getElementById('imgBtn').addEventListener('click', () => window.location.href = 'img.html');
-    document.getElementById('chatBtn').addEventListener('click', () => window.location.href = 'chat.html');
-    document.getElementById('urlBtn').addEventListener('click', () => window.location.href = 'https://url.jbjb.r-e.kr');
-    
-    // 채팅 바로가기 버튼
-    document.getElementById('goToChatBtn').addEventListener('click', () => window.location.href = 'chat.html');
-
-    // 슬라이더 기능
-    const slides = document.getElementById('slides');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const indicators = document.querySelectorAll('.indicator');
-    let currentIndex = 0;
-    const totalSlides = 4;
-    let autoSlideInterval;
-
-    function goToSlide(index) {
-      currentIndex = (index + totalSlides) % totalSlides;
-      slides.className = 'slides slide-' + currentIndex;
-      
-      indicators.forEach((ind, i) => {
-        ind.classList.toggle('active', i === currentIndex);
-      });
-    }
-
-    function nextSlide() {
-      goToSlide(currentIndex + 1);
-    }
-
-    function prevSlide() {
-      goToSlide(currentIndex - 1);
-    }
-
-    function startAutoSlide() {
-      autoSlideInterval = setInterval(nextSlide, 4000);
-    }
-
-    function stopAutoSlide() {
-      clearInterval(autoSlideInterval);
-    }
-
-    // 화살표 버튼
-    prevBtn.addEventListener('click', () => {
-      prevSlide();
-      stopAutoSlide();
-      startAutoSlide();
-    });
-
-    nextBtn.addEventListener('click', () => {
-      nextSlide();
-      stopAutoSlide();
-      startAutoSlide();
-    });
-
-    // 인디케이터 클릭
-    indicators.forEach((indicator) => {
-      indicator.addEventListener('click', () => {
-        const index = parseInt(indicator.getAttribute('data-index'));
-        goToSlide(index);
-        stopAutoSlide();
-        startAutoSlide();
-      });
-    });
-
-    // 배너 이미지 클릭
-    document.getElementById('homeImg').addEventListener('click', () => window.location.href = 'https://jbjb.r-e.kr');
-    document.getElementById('chatImg').addEventListener('click', () => window.location.href = 'chat.html');
-    document.getElementById('gifsvgImg').addEventListener('click', () => window.location.href = 'gifsvg.html');
-    document.getElementById('wikiImg').addEventListener('click', () => window.open('https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82', '_blank'));
-
-    // 자동 슬라이드
-    startAutoSlide();
-
-    // 마우스 오버시 정지
-    document.querySelector('.slider-container').addEventListener('mouseenter', stopAutoSlide);
-    document.querySelector('.slider-container').addEventListener('mouseleave', startAutoSlide);
-
-    // 프로젝트 정보
-    const projectsData = {
-      '687098313bbdde284716010e': {
-        name: '엔트리 비행기2',
-        thumb: 'https://playentry.org/uploads//df/c3/dfc31b43mhbzk0l00006279c995otuuv.png',
-        visit: 0,
-        likeCnt: 0
-      },
-      '68c6799e8d49a4897c18dc29': {
-        name: '한번 만들어봤는데 어때요?',
-        thumb: 'https://playentry.org/uploads//6b/fc/6bfc7404mhbznix30006279c9924jynv.png',
-        visit: 0,
-        likeCnt: 0
-      },
-      '68e8dcf222efbad1212ef9e0': {
-        name: '숫자에 따라 위치정하는 글상자',
-        thumb: 'https://playentry.org/uploads//2d/a3/2da329fcmhbzq6zr0006279c99aog81e.png',
-        visit: 0,
-        likeCnt: 0
-      },
-      '678caee4662c692e3577270e': {
-        name: '만들기 쉬운 계산기!',
-        thumb: 'https://playentry.org/uploads//a2/e4/a2e4edf0mhbzrmsx0006279c999rbwt8.png',
-        visit: 0,
-        likeCnt: 0
-      }
-    };
-
-    function loadProjectInfo() {
-      const workCards = document.querySelectorAll('.work-card');
-      
-      workCards.forEach((card) => {
-        const projectId = card.getAttribute('data-project');
-        const thumbnail = card.querySelector('.work-thumbnail img');
-        const title = card.querySelector('.work-title');
-        const meta = card.querySelector('.work-meta');
-        
-        const project = projectsData[projectId];
-        
-        if (project) {
-          thumbnail.src = project.thumb;
-          title.textContent = project.name;
-          meta.innerHTML = '';
-        }
-      });
-    }
-    
-    loadProjectInfo();
-  </script>
-</body>
-</html>
+          digitContainer.appendChild(
