@@ -739,4 +739,248 @@
             digitWrapper.appendChild(digit);
           }
           
-          digitContainer.appendChild(
+          digitContainer.appendChild(digitWrapper);
+          container.appendChild(digitContainer);
+          
+          const targetDigit = parseInt(char);
+          setTimeout(() => {
+            digitWrapper.style.transform = `translateY(-${targetDigit * digitHeight}px)`;
+          }, 500 + i * 50);
+        }
+      }
+    }
+
+    function updateSlotMachineNumber(container, oldNumber, newNumber) {
+      const oldStr = oldNumber.toLocaleString().replace(/,/g, '');
+      const newStr = newNumber.toLocaleString().replace(/,/g, '');
+      
+      if (oldStr.length !== newStr.length) {
+        createSlotMachineNumber(container, newNumber);
+        return;
+      }
+      
+      const digitContainers = container.querySelectorAll('.digit-container');
+      const digitHeight = 50;
+      let digitIndex = 0;
+      
+      for (let i = 0; i < newStr.length; i++) {
+        const char = newStr[i];
+        
+        if (char !== ',') {
+          const targetDigit = parseInt(char);
+          
+          if (digitIndex < digitContainers.length) {
+            const digitWrapper = digitContainers[digitIndex].querySelector('.digit-wrapper');
+            
+            if (digitWrapper) {
+              const currentTransform = digitWrapper.style.transform;
+              const targetTransform = `translateY(-${targetDigit * digitHeight}px)`;
+
+              if (currentTransform !== targetTransform) {
+                setTimeout(() => {
+                  digitWrapper.style.transform = targetTransform;
+                }, digitIndex * 50);
+              }
+            }
+          }
+          digitIndex++;
+        }
+      }
+    }
+
+    // 채팅 카운트 처리
+    let previousChatCount = 0;
+    const chatCountElement = document.getElementById('chatCount');
+    let chatHasAnimated = false;
+    let actualChatCount = 0;
+
+    const chatStatsSection = document.querySelector('.stats-section');
+    const chatObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !chatHasAnimated) {
+          if (actualChatCount >= 0) {
+            createSlotMachineNumber(chatCountElement, actualChatCount);
+            previousChatCount = actualChatCount;
+            chatHasAnimated = true;
+          }
+          if (actualUrlCount >= 0) {
+            createSlotMachineNumber(urlCountElement, actualUrlCount);
+            previousUrlCount = actualUrlCount;
+            urlHasAnimated = true;
+          }
+        }
+      });
+    }, {
+      threshold: 0.3
+    });
+
+    chatObserver.observe(chatStatsSection);
+
+    createSlotMachineNumber(chatCountElement, 0);
+
+    chatDb.ref("messages").on("value", (snapshot) => {
+      const data = snapshot.val();
+      const count = data ? Object.keys(data).length : 0;
+      actualChatCount = count;
+      
+      if (chatHasAnimated && count !== previousChatCount) {
+        updateSlotMachineNumber(chatCountElement, previousChatCount, count);
+        previousChatCount = count;
+      }
+    });
+
+    // URL 카운트 처리
+    let previousUrlCount = 0;
+    const urlCountElement = document.getElementById('urlCount');
+    let urlHasAnimated = false;
+    let actualUrlCount = 0;
+
+    createSlotMachineNumber(urlCountElement, 0);
+
+    const urlsRef = ref(urlDb, 'urls');
+    onValue(urlsRef, (snapshot) => {
+      const data = snapshot.val();
+      const count = data ? Object.keys(data).length : 0;
+      actualUrlCount = count;
+      
+      if (urlHasAnimated && count !== previousUrlCount) {
+        updateSlotMachineNumber(urlCountElement, previousUrlCount, count);
+        previousUrlCount = count;
+      }
+    });
+
+    // 햄버거 메뉴
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active');
+    });
+
+    // 상단 버튼 이벤트
+    document.getElementById('openLinkBtn1').addEventListener('click', () => window.open('https://naver.me/xAWjFEtu', '_blank'));
+    document.getElementById('openLinkBtn2').addEventListener('click', () => window.location.href = 'gifsvg.html');
+    document.getElementById('openLinkBtn3').addEventListener('click', () => window.location.href = 'https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82');
+    document.getElementById('imgBtn').addEventListener('click', () => window.location.href = 'img.html');
+    document.getElementById('chatBtn').addEventListener('click', () => window.location.href = 'chat.html');
+    document.getElementById('urlBtn').addEventListener('click', () => window.location.href = 'https://url.jbjb.r-e.kr');
+    
+    // 통계 바로가기 버튼
+    document.getElementById('goToChatBtn').addEventListener('click', () => window.location.href = 'chat.html');
+    document.getElementById('goToUrlBtn').addEventListener('click', () => window.location.href = 'https://url.jbjb.r-e.kr');
+
+    // 슬라이더 기능
+    const slides = document.getElementById('slides');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const indicators = document.querySelectorAll('.indicator');
+    let currentIndex = 0;
+    const totalSlides = 4;
+    let autoSlideInterval;
+
+    function goToSlide(index) {
+      currentIndex = (index + totalSlides) % totalSlides;
+      slides.className = 'slides slide-' + currentIndex;
+      
+      indicators.forEach((ind, i) => {
+        ind.classList.toggle('active', i === currentIndex);
+      });
+    }
+
+    function nextSlide() {
+      goToSlide(currentIndex + 1);
+    }
+
+    function prevSlide() {
+      goToSlide(currentIndex - 1);
+    }
+
+    function startAutoSlide() {
+      autoSlideInterval = setInterval(nextSlide, 4000);
+    }
+
+    function stopAutoSlide() {
+      clearInterval(autoSlideInterval);
+    }
+
+    prevBtn.addEventListener('click', () => {
+      prevSlide();
+      stopAutoSlide();
+      startAutoSlide();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      nextSlide();
+      stopAutoSlide();
+      startAutoSlide();
+    });
+
+    indicators.forEach((indicator) => {
+      indicator.addEventListener('click', () => {
+        const index = parseInt(indicator.getAttribute('data-index'));
+        goToSlide(index);
+        stopAutoSlide();
+        startAutoSlide();
+      });
+    });
+
+    document.getElementById('homeImg').addEventListener('click', () => window.location.href = 'https://jbjb.r-e.kr');
+    document.getElementById('chatImg').addEventListener('click', () => window.location.href = 'chat.html');
+    document.getElementById('gifsvgImg').addEventListener('click', () => window.location.href = 'gifsvg.html');
+    document.getElementById('wikiImg').addEventListener('click', () => window.open('https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82', '_blank'));
+
+    startAutoSlide();
+
+    document.querySelector('.slider-container').addEventListener('mouseenter', stopAutoSlide);
+    document.querySelector('.slider-container').addEventListener('mouseleave', startAutoSlide);
+
+    // 프로젝트 정보
+    const projectsData = {
+      '687098313bbdde284716010e': {
+        name: '엔트리 비행기2',
+        thumb: 'https://playentry.org/uploads//df/c3/dfc31b43mhbzk0l00006279c995otuuv.png',
+        visit: 0,
+        likeCnt: 0
+      },
+      '68c6799e8d49a4897c18dc29': {
+        name: '한번 만들어봤는데 어때요?',
+        thumb: 'https://playentry.org/uploads//6b/fc/6bfc7404mhbznix30006279c9924jynv.png',
+        visit: 0,
+        likeCnt: 0
+      },
+      '68e8dcf222efbad1212ef9e0': {
+        name: '숫자에 따라 위치정하는 글상자',
+        thumb: 'https://playentry.org/uploads//2d/a3/2da329fcmhbzq6zr0006279c99aog81e.png',
+        visit: 0,
+        likeCnt: 0
+      },
+      '678caee4662c692e3577270e': {
+        name: '만들기 쉬운 계산기!',
+        thumb: 'https://playentry.org/uploads//a2/e4/a2e4edf0mhbzrmsx0006279c999rbwt8.png',
+        visit: 0,
+        likeCnt: 0
+      }
+    };
+
+    function loadProjectInfo() {
+      const workCards = document.querySelectorAll('.work-card');
+      
+      workCards.forEach((card) => {
+        const projectId = card.getAttribute('data-project');
+        const thumbnail = card.querySelector('.work-thumbnail img');
+        const title = card.querySelector('.work-title');
+        const meta = card.querySelector('.work-meta');
+        
+        const project = projectsData[projectId];
+        
+        if (project) {
+          thumbnail.src = project.thumb;
+          title.textContent = project.name;
+          meta.innerHTML = '';
+        }
+      });
+    }
+    
+    loadProjectInfo();
+  </script>
+</body>
+</html>
