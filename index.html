@@ -997,6 +997,28 @@
       data-text="signin_with"
       data-logo_alignment="center">
   </div>
+  <script>
+    function handleCredentialResponse(response) {
+      const data = parseJwt(response.credential);
+      document.getElementById("userinfo").innerHTML =
+        "안녕하세요, " + data.name + "님!<br>" +
+        "이메일: " + data.email;
+    }
+  
+    function parseJwt(token) {
+      let base64Url = token.split('.')[1];
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      let jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    }
+  </script>
+  
+  <div id="userinfo"></div>
 
 </body>
 </html>
