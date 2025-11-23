@@ -81,6 +81,77 @@
 
     .logo img { width: 100px; height: 100px; }
 
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 28px;
+      cursor: pointer;
+      order: 2;
+    }
+
+    /* 로그인 영역 스타일 */
+    .login-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      order: 1;
+    }
+
+    .user-info {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(54, 99, 255, 0.1);
+      padding: 8px 15px;
+      border-radius: 20px;
+      border: 1px solid rgba(54, 99, 255, 0.3);
+    }
+
+    .user-info.active {
+      display: flex;
+    }
+
+    .user-name {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .logout-btn {
+      background: #ff4444;
+      color: #fff;
+      padding: 6px 16px;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .logout-btn:hover {
+      background: #cc0000;
+      transform: translateY(-2px);
+    }
+
+    #g_id_onload {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .g_id_signin {
+      display: inline-block;
+    }
+
     nav {
       display: flex;
       gap: 20px;
@@ -100,15 +171,6 @@
     }
     .top-button:hover { transform: translateY(-8px) scale(1.05); }
     .top-button:active { background: #2952CC; }
-
-    .menu-toggle {
-      display: none;
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 28px;
-      cursor: pointer;
-    }
 
     main {
       padding: 0;
@@ -488,6 +550,14 @@
     }
 
     @media (max-width: 800px) {
+      header {
+        padding: 10px 20px;
+      }
+
+      .header-right {
+        flex-direction: row-reverse;
+      }
+
       nav {
         flex-direction: column;
         gap: 15px;
@@ -506,7 +576,27 @@
         opacity: 1;
       }
 
-      .menu-toggle { display: block; }
+      .menu-toggle { 
+        display: block;
+      }
+
+      .login-area {
+        order: 1;
+      }
+
+      .user-info {
+        padding: 6px 12px;
+      }
+
+      .user-name {
+        font-size: 13px;
+      }
+
+      .logout-btn {
+        padding: 5px 12px;
+        font-size: 12px;
+      }
+
       .top-button { width: 100%; }
       
       .slider-container { height: calc(100vh - 200px); }
@@ -576,7 +666,31 @@
       ㋡꧁정빈777꧂
     </div>
 
-    <button class="menu-toggle" id="menuToggle">☰</button>
+    <div class="header-right">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      
+      <div class="login-area">
+        <div class="user-info" id="userInfo">
+          <span class="user-name" id="userName"></span>
+          <button class="logout-btn" id="logoutBtn">로그아웃</button>
+        </div>
+        
+        <div id="g_id_onload"
+            data-client_id="657589319352-3ue0rjgjpsr11d48qva3alut62c8s3kk.apps.googleusercontent.com"
+            data-callback="handleCredentialResponse"
+            data-auto_prompt="false">
+        </div>
+
+        <div class="g_id_signin" id="googleSignInBtn"
+            data-type="standard"
+            data-shape="rectangular"
+            data-theme="outline"
+            data-size="large"
+            data-text="signin_with"
+            data-logo_alignment="center">
+        </div>
+      </div>
+    </div>
 
     <nav id="navMenu">
       <button class="top-button" id="openLinkBtn1">마이페이지</button>
@@ -680,352 +794,51 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script type="module">
+    // 구글 로그인 처리
+    let currentUser = null;
+
+    window.handleCredentialResponse = function(response) {
+      const data = parseJwt(response.credential);
+      currentUser = data;
+      
+      // UI 업데이트
+      document.getElementById('userName').textContent = data.name;
+      document.getElementById('userInfo').classList.add('active');
+      document.getElementById('googleSignInBtn').style.display = 'none';
+      
+      // 로컬 스토리지에 저장
+      localStorage.setItem('googleUser', JSON.stringify(data));
+    };
+
+    function parseJwt(token) {
+      let base64Url = token.split('.')[1];
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      let jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    }
+
+    // 페이지 로드 시 로그인 상태 확인
+    const savedUser = localStorage.getItem('googleUser');
+    if (savedUser) {
+      currentUser = JSON.parse(savedUser);
+      document.getElementById('userName').textContent = currentUser.name;
+      document.getElementById('userInfo').classList.add('active');
+      document.getElementById('googleSignInBtn').style.display = 'none';
+    }
+
+    // 로그아웃 버튼 이벤트
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      currentUser = null;
+      localStorage.removeItem('googleUser');
+      document.getElementById('userInfo').classList.remove('active');
+      document.getElementById('googleSignInBtn').style.display = 'inline-block';
+      
+      google.accounts.id.disableAutoSelect();
+    });
+
     // 채팅 Firebase 초기화
-    const chatFirebaseConfig = {
-      apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
-      authDomain: "chat-6086d.firebaseapp.com",
-      databaseURL: "https://chat-6086d-default-rtdb.firebaseio.com",
-      projectId: "chat-6086d",
-      storageBucket: "chat-6086d.firebasestorage.app",
-      messagingSenderId: "1050767904189",
-      appId: "1:1050767904189:web:8f23809cbccd9c98c256d4"
-    };
-    const chatApp = firebase.initializeApp(chatFirebaseConfig, "chat");
-    const chatDb = firebase.database(chatApp);
-
-    // URL 단축 Firebase 초기화
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-    
-    const urlFirebaseConfig = {
-      apiKey: "AIzaSyB8OHhR0Vjan_nNdCczb5e2bOuDBYYRiIg",
-      authDomain: "urlshare-718c1.firebaseapp.com",
-      databaseURL: "https://urlshare-718c1-default-rtdb.firebaseio.com",
-      projectId: "urlshare-718c1",
-      storageBucket: "urlshare-718c1.firebasestorage.app",
-      messagingSenderId: "666729308999",
-      appId: "1:666729308999:web:a7f6d363e88b1d5ed5a262",
-      measurementId: "G-VZH9BNQ3VR"
-    };
-    
-    const urlApp = initializeApp(urlFirebaseConfig);
-    const urlDb = getDatabase(urlApp);
-
-    // 롤링 숫자 애니메이션 함수
-    function createSlotMachineNumber(container, number) {
-      const numStr = number.toLocaleString();
-      container.innerHTML = '';
-      
-      const digitHeight = 50;
-      
-      for (let i = 0; i < numStr.length; i++) {
-        const char = numStr[i];
-        
-        if (char === ',') {
-          const comma = document.createElement('span');
-          comma.className = 'comma';
-          comma.textContent = ',';
-          container.appendChild(comma);
-        } else {
-          const digitContainer = document.createElement('div');
-          digitContainer.className = 'digit-container';
-          
-          const digitWrapper = document.createElement('div');
-          digitWrapper.className = 'digit-wrapper';
-          
-          for (let j = 0; j <= 9; j++) {
-            const digit = document.createElement('div');
-            digit.className = 'digit';
-            digit.textContent = j;
-            digitWrapper.appendChild(digit);
-          }
-          
-          digitContainer.appendChild(digitWrapper);
-          container.appendChild(digitContainer);
-          
-          const targetDigit = parseInt(char);
-          setTimeout(() => {
-            digitWrapper.style.transform = `translateY(-${targetDigit * digitHeight}px)`;
-          }, 500 + i * 50);
-        }
-      }
-    }
-
-    function updateSlotMachineNumber(container, oldNumber, newNumber) {
-      const oldStr = oldNumber.toLocaleString().replace(/,/g, '');
-      const newStr = newNumber.toLocaleString().replace(/,/g, '');
-      
-      if (oldStr.length !== newStr.length) {
-        createSlotMachineNumber(container, newNumber);
-        return;
-      }
-      
-      const digitContainers = container.querySelectorAll('.digit-container');
-      const digitHeight = 50;
-      let digitIndex = 0;
-      
-      for (let i = 0; i < newStr.length; i++) {
-        const char = newStr[i];
-        
-        if (char !== ',') {
-          const targetDigit = parseInt(char);
-          
-          if (digitIndex < digitContainers.length) {
-            const digitWrapper = digitContainers[digitIndex].querySelector('.digit-wrapper');
-            
-            if (digitWrapper) {
-              const currentTransform = digitWrapper.style.transform;
-              const targetTransform = `translateY(-${targetDigit * digitHeight}px)`;
-
-              if (currentTransform !== targetTransform) {
-                setTimeout(() => {
-                  digitWrapper.style.transform = targetTransform;
-                }, digitIndex * 50);
-              }
-            }
-          }
-          digitIndex++;
-        }
-      }
-    }
-
-    // 채팅 카운트 처리
-    let previousChatCount = 0;
-    const chatCountElement = document.getElementById('chatCount');
-    let chatHasAnimated = false;
-    let actualChatCount = 0;
-
-    const chatStatsSection = document.querySelector('.stats-section');
-    const chatObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !chatHasAnimated) {
-          if (actualChatCount >= 0) {
-            createSlotMachineNumber(chatCountElement, actualChatCount);
-            previousChatCount = actualChatCount;
-            chatHasAnimated = true;
-          }
-          if (actualUrlCount >= 0) {
-            createSlotMachineNumber(urlCountElement, actualUrlCount);
-            previousUrlCount = actualUrlCount;
-            urlHasAnimated = true;
-          }
-        }
-      });
-    }, {
-      threshold: 0.3
-    });
-
-    chatObserver.observe(chatStatsSection);
-
-    createSlotMachineNumber(chatCountElement, 0);
-
-    chatDb.ref("messages").on("value", (snapshot) => {
-      const data = snapshot.val();
-      const count = data ? Object.keys(data).length : 0;
-      actualChatCount = count;
-      
-      if (chatHasAnimated && count !== previousChatCount) {
-        updateSlotMachineNumber(chatCountElement, previousChatCount, count);
-        previousChatCount = count;
-      }
-    });
-
-    // URL 카운트 처리
-    let previousUrlCount = 0;
-    const urlCountElement = document.getElementById('urlCount');
-    let urlHasAnimated = false;
-    let actualUrlCount = 0;
-
-    createSlotMachineNumber(urlCountElement, 0);
-
-    const urlsRef = ref(urlDb, 'urls');
-    onValue(urlsRef, (snapshot) => {
-      const data = snapshot.val();
-      const count = data ? Object.keys(data).length : 0;
-      actualUrlCount = count;
-      
-      if (urlHasAnimated && count !== previousUrlCount) {
-        updateSlotMachineNumber(urlCountElement, previousUrlCount, count);
-        previousUrlCount = count;
-      }
-    });
-
-    // 햄버거 메뉴
-    const menuToggle = document.getElementById('menuToggle');
-    const navMenu = document.getElementById('navMenu');
-    menuToggle.addEventListener('click', () => {
-      navMenu.classList.toggle('active');
-    });
-
-    // 상단 버튼 이벤트
-    document.getElementById('openLinkBtn1').addEventListener('click', () => window.open('https://naver.me/xAWjFEtu', '_blank'));
-    document.getElementById('openLinkBtn2').addEventListener('click', () => window.location.href = 'gifsvg.html');
-    document.getElementById('openLinkBtn3').addEventListener('click', () => window.location.href = 'https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82');
-    document.getElementById('imgBtn').addEventListener('click', () => window.location.href = 'img.html');
-    document.getElementById('chatBtn').addEventListener('click', () => window.location.href = 'chat.html');
-    document.getElementById('urlBtn').addEventListener('click', () => window.location.href = 'https://url.jbjb.r-e.kr');
-    
-    // 통계 바로가기 버튼
-    document.getElementById('goToChatBtn').addEventListener('click', () => window.location.href = 'chat.html');
-    document.getElementById('goToUrlBtn').addEventListener('click', () => window.location.href = 'https://url.jbjb.r-e.kr');
-
-    // 슬라이더 기능
-    const slides = document.getElementById('slides');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const indicators = document.querySelectorAll('.indicator');
-    let currentIndex = 0;
-    const totalSlides = 4;
-    let autoSlideInterval;
-
-    function goToSlide(index) {
-      currentIndex = (index + totalSlides) % totalSlides;
-      slides.className = 'slides slide-' + currentIndex;
-      
-      indicators.forEach((ind, i) => {
-        ind.classList.toggle('active', i === currentIndex);
-      });
-    }
-
-    function nextSlide() {
-      goToSlide(currentIndex + 1);
-    }
-
-    function prevSlide() {
-      goToSlide(currentIndex - 1);
-    }
-
-    function startAutoSlide() {
-      autoSlideInterval = setInterval(nextSlide, 4000);
-    }
-
-    function stopAutoSlide() {
-      clearInterval(autoSlideInterval);
-    }
-
-    prevBtn.addEventListener('click', () => {
-      prevSlide();
-      stopAutoSlide();
-      startAutoSlide();
-    });
-
-    nextBtn.addEventListener('click', () => {
-      nextSlide();
-      stopAutoSlide();
-      startAutoSlide();
-    });
-
-    indicators.forEach((indicator) => {
-      indicator.addEventListener('click', () => {
-        const index = parseInt(indicator.getAttribute('data-index'));
-        goToSlide(index);
-        stopAutoSlide();
-        startAutoSlide();
-      });
-    });
-
-    document.getElementById('homeImg').addEventListener('click', () => window.location.href = 'https://jbjb.r-e.kr');
-    document.getElementById('chatImg').addEventListener('click', () => window.location.href = 'chat.html');
-    document.getElementById('gifsvgImg').addEventListener('click', () => window.location.href = 'gifsvg.html');
-    document.getElementById('wikiImg').addEventListener('click', () => window.open('https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82', '_blank'));
-
-    startAutoSlide();
-
-    document.querySelector('.slider-container').addEventListener('mouseenter', stopAutoSlide);
-    document.querySelector('.slider-container').addEventListener('mouseleave', startAutoSlide);
-
-    // 프로젝트 정보
-    const projectsData = {
-      '687098313bbdde284716010e': {
-        name: '엔트리 비행기2',
-        thumb: 'https://playentry.org/uploads//df/c3/dfc31b43mhbzk0l00006279c995otuuv.png',
-        visit: 0,
-        likeCnt: 0
-      },
-      '68c6799e8d49a4897c18dc29': {
-        name: '한번 만들어봤는데 어때요?',
-        thumb: 'https://playentry.org/uploads//6b/fc/6bfc7404mhbznix30006279c9924jynv.png',
-        visit: 0,
-        likeCnt: 0
-      },
-      '68e8dcf222efbad1212ef9e0': {
-        name: '숫자에 따라 위치정하는 글상자',
-        thumb: 'https://playentry.org/uploads//2d/a3/2da329fcmhbzq6zr0006279c99aog81e.png',
-        visit: 0,
-        likeCnt: 0
-      },
-      '678caee4662c692e3577270e': {
-        name: '만들기 쉬운 계산기!',
-        thumb: 'https://playentry.org/uploads//a2/e4/a2e4edf0mhbzrmsx0006279c999rbwt8.png',
-        visit: 0,
-        likeCnt: 0
-      }
-    };
-
-    function loadProjectInfo() {
-      const workCards = document.querySelectorAll('.work-card');
-      
-      workCards.forEach((card) => {
-        const projectId = card.getAttribute('data-project');
-        const thumbnail = card.querySelector('.work-thumbnail img');
-        const title = card.querySelector('.work-title');
-        const meta = card.querySelector('.work-meta');
-        
-        const project = projectsData[projectId];
-        
-        if (project) {
-          thumbnail.src = project.thumb;
-          title.textContent = project.name;
-          meta.innerHTML = '';
-        }
-      });
-    }
-    
-    loadProjectInfo();
-  </script>
-  <!-- 1) 사용자 정보 표시 영역 -->
-  <div id="userinfo"></div>
-  
-  <!-- 2) Google Identity Services 버튼 -->
-  <div id="g_id_onload"
-      data-client_id="657589319352-3ue0rjgjpsr11d48qva3alut62c8s3kk.apps.googleusercontent.com"
-      data-callback="handleCredentialResponse"
-      data-auto_prompt="false">
-  </div>
-
-  <div class="g_id_signin"
-      data-type="standard"
-      data-shape="rectangular"
-      data-theme="outline"
-      data-size="large"
-      data-text="signin_with"
-      data-logo_alignment="center">
-  </div>
-  
-  <!-- 3) GSI 스크립트 -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  
-  <!-- 4) 로그인 성공 콜백 -->
-  <script>
-  function handleCredentialResponse(response) {
-    const data = parseJwt(response.credential);
-    document.getElementById("userinfo").innerHTML =
-      "안녕하세요, " + data.name + "님!<br>" +
-      "이메일: " + data.email;
-  }
-  
-  function parseJwt(token) {
-    let base64Url = token.split('.')[1];
-    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    let jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  }
-  </script>
-
-</body>
-</html>
