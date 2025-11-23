@@ -47,6 +47,7 @@
     ]
   }
   </script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -982,5 +983,20 @@
     
     loadProjectInfo();
   </script>
+  <div id="g_id_onload"
+      data-client_id="📌여기에_너의_Client_ID"
+      data-login_uri="https://jbjb.r-e.kr/auth/callback"
+      data-auto_prompt="false">
+  </div>
+  
+  <div class="g_id_signin"
+      data-type="standard"
+      data-shape="rectangular"
+      data-theme="outline"
+      data-size="large"
+      data-text="signin_with"
+      data-logo_alignment="center">
+  </div>
+
 </body>
 </html>
