@@ -781,115 +781,65 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-  <!-- 구글 로그인 스크립트 (일반 스크립트로 분리) -->
-  <script>
+  <script type="module">
     // ===== 구글 로그인 시스템 =====
-    // JWT 파싱 함수
-    function parseJwt(token) {
-      try {
-        let base64Url = token.split('.')[1];
-        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        let jsonPayload = decodeURIComponent(
-          atob(base64)
-            .split('')
-            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-            .join('')
-        );
-        return JSON.parse(jsonPayload);
-      } catch (error) {
-        console.error('JWT 파싱 오류:', error);
-        return null;
-      }
-    }
-
-    // 구글 로그인 콜백 함수 (전역 스코프)
     window.handleCredentialResponse = function(response) {
-      if (!response || !response.credential) {
-        console.error('구글 로그인 응답 오류');
-        return;
-      }
-
       const data = parseJwt(response.credential);
       
-      if (!data) {
-        console.error('사용자 데이터 파싱 실패');
-        return;
-      }
-      
-      // localStorage에 저장 (sessionStorage보다 안정적)
-      try {
-        localStorage.setItem('jb777_googleUser', JSON.stringify({
-          name: data.name,
-          email: data.email,
-          picture: data.picture,
-          sub: data.sub
-        }));
-      } catch (error) {
-        console.error('로컬 스토리지 저장 실패:', error);
-      }
+      // sessionStorage에 저장 (모든 탭에서 공유)
+      sessionStorage.setItem('jb777_googleUser', JSON.stringify({
+        name: data.name,
+        email: data.email,
+        picture: data.picture,
+        sub: data.sub
+      }));
       
       updateLoginUI(data);
       window.dispatchEvent(new CustomEvent('jb777-login', { detail: data }));
     };
 
-    // UI 업데이트 함수
-    function updateLoginUI(userData) {
-      const userNameEl = document.getElementById('userName');
-      const userInfoEl = document.getElementById('userInfo');
-      const signInBtn = document.getElementById('googleSignInBtn');
-      
-      if (userNameEl) userNameEl.textContent = userData.name;
-      if (userInfoEl) userInfoEl.classList.add('active');
-      if (signInBtn) signInBtn.style.display = 'none';
+    function parseJwt(token) {
+      let base64Url = token.split('.')[1];
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      let jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
     }
 
-    // UI 초기화 함수
+    function updateLoginUI(userData) {
+      document.getElementById('userName').textContent = userData.name;
+      document.getElementById('userInfo').classList.add('active');
+      document.getElementById('googleSignInBtn').style.display = 'none';
+    }
+
     function clearLoginUI() {
-      const userInfoEl = document.getElementById('userInfo');
-      const signInBtn = document.getElementById('googleSignInBtn');
-      
-      if (userInfoEl) userInfoEl.classList.remove('active');
-      if (signInBtn) signInBtn.style.display = 'inline-block';
+      document.getElementById('userInfo').classList.remove('active');
+      document.getElementById('googleSignInBtn').style.display = 'inline-block';
     }
 
     // 페이지 로드 시 로그인 상태 확인
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        const savedUser = localStorage.getItem('jb777_googleUser');
-        if (savedUser) {
-          const userData = JSON.parse(savedUser);
-          updateLoginUI(userData);
-        }
-      } catch (error) {
-        console.error('로그인 정보 불러오기 실패:', error);
-      }
-    });
+    const savedUser = sessionStorage.getItem('jb777_googleUser');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      updateLoginUI(userData);
+    }
 
     // 로그아웃 버튼 이벤트
-    document.addEventListener('DOMContentLoaded', function() {
-      const logoutBtn = document.getElementById('logoutBtn');
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      sessionStorage.removeItem('jb777_googleUser');
+      clearLoginUI();
       
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-          try {
-            localStorage.removeItem('jb777_googleUser');
-          } catch (error) {
-            console.error('로그아웃 실패:', error);
-          }
-          
-          clearLoginUI();
-          
-          if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-            google.accounts.id.disableAutoSelect();
-          }
-          
-          window.dispatchEvent(new CustomEvent('jb777-logout'));
-        });
+      if (typeof google !== 'undefined') {
+        google.accounts.id.disableAutoSelect();
       }
+      
+      window.dispatchEvent(new CustomEvent('jb777-logout'));
     });
-  </script>
 
-  <script type="module">
     // ===== 기존 코드 유지 =====
     
     // 채팅 Firebase 초기화
@@ -1194,3 +1144,7 @@
     }
     
     loadProjectInfo();
+  </script>
+
+</body>
+</html>
