@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>㋡꧁정빈777꧂ - 홈</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #121212;
+      color: #ffffff;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background-color: #1e1e1e;
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    .login-area {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-info {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: rgba(54, 99, 255, 0.15);
+      padding: 12px 20px;
+      border-radius: 25px;
+      border: 2px solid rgba(54, 99, 255, 0.4);
+    }
+
+    .user-info.active {
+      display: flex;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid #3663FF;
+    }
+
+    .user-name {
+      font-size: 15px;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .logout-btn {
+      background: #ff4444;
+      color: #fff;
+      padding: 8px 18px;
+      border: none;
+      border-radius: 18px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .logout-btn:hover {
+      background: #cc0000;
+      transform: translateY(-2px);
+    }
+
+    .content {
+      background: #1e1e1e;
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      text-align: left;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+
+    .status-line {
+      margin: 5px 0;
+      color: #aaa;
+    }
+
+    .status-ok {
+      color: #4CAF50;
+    }
+
+    .status-error {
+      color: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">㋡꧁정빈777꧂</div>
+    
+    <div class="login-area">
+      <div class="user-info" id="userInfo">
+        <img id="userAvatar" class="user-avatar" src="" alt="프로필">
+        <span class="user-name" id="userName"></span>
+        <button class="logout-btn" id="logoutBtn">로그아웃</button>
+      </div>
+      
+      <div id="g_id_onload"
+          data-client_id="657589319352-3ue0rjgjpsr11d48qva3alut62c8s3kk.apps.googleusercontent.com"
+          data-callback="handleCredentialResponse"
+          data-auto_prompt="false">
+      </div>
+
+      <div class="g_id_signin"
+          data-type="standard"
+          data-shape="rectangular"
+          data-theme="outline"
+          data-size="large"
+          data-text="signin_with"
+          data-logo_alignment="center">
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+    <h1>구글 로그인 테스트</h1>
+    <p>위의 버튼으로 로그인을 시도해보세요.</p>
+    
+    <div class="status" id="statusLog">
+      <div class="status-line">🔍 디버그 로그:</div>
+    </div>
+  </div>
+
+  <!-- 일반 스크립트로 변경 (module 제거) -->
+  <script>
+    // 디버그 로그 함수
+    function addLog(message, type = 'info') {
+      const log = document.getElementById('statusLog');
+      const line = document.createElement('div');
+      line.className = `status-line ${type === 'ok' ? 'status-ok' : type === 'error' ? 'status-error' : ''}`;
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      log.appendChild(line);
+      console.log(message);
+    }
+
+    // 페이지 로드 시 초기화
+    addLog('페이지 로드됨');
+    
+    // localStorage 사용 (sessionStorage 대신)
+    // localStorage는 브라우저를 닫아도 유지되고, 더 안정적입니다
+    
+    // JWT 파싱 함수
+    function parseJwt(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+        return JSON.parse(jsonPayload);
+      } catch (error) {
+        addLog('JWT 파싱 실패: ' + error.message, 'error');
+        return null;
+      }
+    }
+
+    // 구글 로그인 콜백 (전역 스코프에 선언)
+    window.handleCredentialResponse = function(response) {
+      addLog('구글 로그인 콜백 실행됨', 'ok');
+      
+      if (!response || !response.credential) {
+        addLog('응답 데이터가 없습니다', 'error');
+        return;
+      }
+
+      const userData = parseJwt(response.credential);
+      
+      if (!userData) {
+        addLog('사용자 데이터 파싱 실패', 'error');
+        return;
+      }
+
+      addLog(`사용자 정보: ${userData.name} (${userData.email})`, 'ok');
+      
+      // localStorage에 저장
+      const userDataToSave = {
+        name: userData.name,
+        email: userData.email,
+        picture: userData.picture,
+        sub: userData.sub,
+        loginTime: new Date().toISOString()
+      };
+      
+      try {
+        localStorage.setItem('jb777_googleUser', JSON.stringify(userDataToSave));
+        addLog('로컬 스토리지 저장 성공', 'ok');
+      } catch (error) {
+        addLog('로컬 스토리지 저장 실패: ' + error.message, 'error');
+      }
+      
+      updateLoginUI(userDataToSave);
+      
+      // 커스텀 이벤트 발생
+      window.dispatchEvent(new CustomEvent('jb777-login', { detail: userDataToSave }));
+    };
+
+    // UI 업데이트 함수
+    function updateLoginUI(userData) {
+      addLog('UI 업데이트 시작', 'ok');
+      
+      const userInfo = document.getElementById('userInfo');
+      const userName = document.getElementById('userName');
+      const userAvatar = document.getElementById('userAvatar');
+      const signInBtn = document.querySelector('.g_id_signin');
+      
+      if (userName) userName.textContent = userData.name;
+      if (userAvatar && userData.picture) userAvatar.src = userData.picture;
+      if (userInfo) userInfo.classList.add('active');
+      if (signInBtn) signInBtn.style.display = 'none';
+      
+      addLog('로그인 UI 표시 완료', 'ok');
+    }
+
+    // UI 초기화 함수
+    function clearLoginUI() {
+      addLog('로그아웃 UI 업데이트');
+      
+      const userInfo = document.getElementById('userInfo');
+      const signInBtn = document.querySelector('.g_id_signin');
+      
+      if (userInfo) userInfo.classList.remove('active');
+      if (signInBtn) signInBtn.style.display = 'inline-block';
+    }
+
+    // 페이지 로드 시 저장된 로그인 정보 확인
+    window.addEventListener('DOMContentLoaded', function() {
+      addLog('DOM 로드 완료');
+      
+      try {
+        const savedUser = localStorage.getItem('jb777_googleUser');
+        
+        if (savedUser) {
+          addLog('저장된 로그인 정보 발견', 'ok');
+          const userData = JSON.parse(savedUser);
+          updateLoginUI(userData);
+        } else {
+          addLog('저장된 로그인 정보 없음');
+        }
+      } catch (error) {
+        addLog('로그인 정보 불러오기 실패: ' + error.message, 'error');
+      }
+    });
+
+    // 로그아웃 버튼 이벤트
+    document.addEventListener('DOMContentLoaded', function() {
+      const logoutBtn = document.getElementById('logoutBtn');
+      
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+          addLog('로그아웃 시도');
+          
+          try {
+            localStorage.removeItem('jb777_googleUser');
+            addLog('로컬 스토리지 삭제 완료', 'ok');
+          } catch (error) {
+            addLog('로컬 스토리지 삭제 실패: ' + error.message, 'error');
+          }
+          
+          clearLoginUI();
+          
+          // 구글 자동 로그인 비활성화
+          if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+            google.accounts.id.disableAutoSelect();
+            addLog('구글 자동 선택 비활성화', 'ok');
+          }
+          
+          // 커스텀 이벤트 발생
+          window.dispatchEvent(new CustomEvent('jb777-logout'));
+          
+          addLog('로그아웃 완료', 'ok');
+        });
+      }
+    });
+
+    // Google API 로드 확인
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        if (typeof google !== 'undefined' && google.accounts) {
+          addLog('구글 API 로드 완료', 'ok');
+        } else {
+          addLog('구글 API 로드 실패', 'error');
+        }
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
