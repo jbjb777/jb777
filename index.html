@@ -47,6 +47,8 @@
     ]
   }
   </script>
+
+  <!-- Google Identity Services (kept, we'll reuse on-demand) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
@@ -139,6 +141,7 @@
       transform: translateY(-2px);
     }
 
+    /* 원래대로 Google 버튼 보이도록 수정 */
     .g_id_signin {
       display: inline-block;
     }
@@ -771,12 +774,43 @@
     </div>
   </footer>
 
+  <!-- 로그인 오버레이 (전체화면 블러 + 모달) -->
+  <div id="loginOverlay" class="overlay" aria-hidden="true" role="dialog" style="display:none;">
+    <!-- overlay 스타일은 CSS에 없던 요소라 추가된 모달 관련 CSS가 필요하면 아래 스크립트의 openOverlay/closeOverlay로 제어하세요 -->
+    <div class="modal" role="document" style="background:#0f1720; color:#fff; border-radius:12px; padding:18px; position:relative; width:min(560px,94%);">
+      <button class="close-x" id="overlayClose" title="나가기" style="position:absolute; left:12px; top:12px; background:transparent; border:0; color:#bbb; font-size:20px; cursor:pointer;">✕</button>
+      <h2 style="margin:0 0 12px 0; font-size:18px;">로그인</h2>
+
+      <div class="login-options" id="loginOptions" style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
+        <button id="googleLoginBtn" class="login-btn google" title="구글 계정으로 로그인" style="display:flex; gap:12px; align-items:center; padding:12px 14px; border-radius:8px; border:1px solid #dadce0; background:#fff; cursor:pointer; font-weight:700;">
+          <img src="google.png" alt="Google" style="height:22px; width:auto;" />
+          <span style="color:#000; font-weight:700;">구글 계정으로 로그인</span>
+        </button>
+
+        <button id="jbLoginBtn" class="login-btn jb" title="정빈777 로 로그인" style="display:flex; gap:12px; align-items:center; padding:12px 14px; border-radius:8px; border:1px solid #2b2b2b; background:linear-gradient(90deg,#3663FF,#53b6f9); color:#fff; cursor:pointer; font-weight:700;">
+          <img src="logo.svg" alt="정빈777" style="height:22px; width:auto;" />
+          <span style="font-weight:700;">정빈777 로 로그인</span>
+        </button>
+      </div>
+
+      <!-- 닉네임 입력 모달(정빈777 로그인 흐름) -->
+      <div id="nicknameModal" class="nickname-modal" aria-hidden="true" style="display:none; flex-direction:column; gap:10px; margin-top:12px;">
+        <label for="nicknameInput"><strong>여기서 사용할 닉네임을 입력해주세요</strong></label>
+        <input id="nicknameInput" class="input" type="text" placeholder="예: 정빈777" maxlength="30" style="padding:10px 12px; border-radius:8px; border:1px solid #2b2b2b; font-size:14px; width:100%; box-sizing:border-box; background:#0b1220; color:#fff;" />
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+          <button id="cancelNickname" class="btn secondary" style="padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:700; background:#1f2937; color:#fff;">취소</button>
+          <button id="saveNickname" class="btn primary" style="padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:700; background:#3663FF; color:#fff;">저장하고 로그인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-  <!-- 구글 로그인만 일반 스크립트로 처리l -->
+  <!-- 기존 GSI JWT 파싱 + 콜백 유지 -->
   <script>
-    // JWT 파싱 함수
+    // JWT 파싱 함수 (기존 코드 유지)
     function parseJwt(token) {
       try {
         let base64Url = token.split('.')[1];
@@ -794,7 +828,7 @@
       }
     }
 
-    // 구글 로그인 콜백
+    // 기존 콜백: GSI에서 인증 토큰이 들어오면 이 함수가 호출됩니다.
     window.handleCredentialResponse = function(response) {
       if (!response || !response.credential) {
         console.error('구글 로그인 응답 오류');
@@ -802,13 +836,12 @@
       }
 
       const data = parseJwt(response.credential);
-      
       if (!data) {
         console.error('사용자 데이터 파싱 실패');
         return;
       }
-      
-      // localStorage에 저장
+
+      // 기존 로직: jb777_googleUser에 저장 (호환성 유지)
       try {
         localStorage.setItem('jb777_googleUser', JSON.stringify({
           name: data.name,
@@ -816,16 +849,21 @@
           picture: data.picture,
           sub: data.sub
         }));
+        // 채팅/다른 앱과의 호환을 위해 nickname, user_displayName도 동일한 값으로 저장
+        localStorage.setItem('nickname', data.name);
+        localStorage.setItem('user_displayName', data.name);
+        localStorage.setItem('user_photoURL', data.picture || '');
       } catch (error) {
         console.error('로컬 스토리지 저장 실패:', error);
       }
-      
-      updateLoginUI(data);
+
+      updateLoginUIFromGSI(data);
+      closeOverlayIfOpen();
       window.dispatchEvent(new CustomEvent('jb777-login', { detail: data }));
     };
 
-    // UI 업데이트 함수
-    function updateLoginUI(userData) {
+    // UI 업데이트 함수 (GSI용)
+    function updateLoginUIFromGSI(userData) {
       const userNameEl = document.getElementById('userName');
       const userInfoEl = document.getElementById('userInfo');
       const signInBtn = document.getElementById('googleSignInBtn');
@@ -844,44 +882,45 @@
       if (signInBtn) signInBtn.style.display = 'inline-block';
     }
 
-    // 페이지 로드 시 로그인 상태 확인
-    document.addEventListener('DOMContentLoaded', function() {
+    // 닉네임(정빈777)으로 로그인했을 때 UI 업데이트 (호환성: jb777_googleUser 형태도 저장)
+    function updateLoginUIFromNickname(nick) {
+      const userNameEl = document.getElementById('userName');
+      const userInfoEl = document.getElementById('userInfo');
+      const signInBtn = document.getElementById('googleSignInBtn');
+
+      const pseudo = {
+        name: nick,
+        email: '',
+        picture: 'logo.svg',
+        sub: 'local-' + (nick || 'user')
+      };
+
+      // save compatibility keys
       try {
-        const savedUser = localStorage.getItem('jb777_googleUser');
-        if (savedUser) {
-          const userData = JSON.parse(savedUser);
-          updateLoginUI(userData);
-        }
-      } catch (error) {
-        console.error('로그인 정보 불러오기 실패:', error);
+        localStorage.setItem('jb777_googleUser', JSON.stringify(pseudo));
+        localStorage.setItem('user_displayName', nick);
+        localStorage.setItem('user_photoURL', 'logo.svg');
+        localStorage.setItem('nickname', nick);
+      } catch (e) {
+        console.warn('로컬스토리지 저장 실패:', e);
       }
-      
-      // 로그아웃 버튼 이벤트
-      const logoutBtn = document.getElementById('logoutBtn');
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-          try {
-            localStorage.removeItem('jb777_googleUser');
-          } catch (error) {
-            console.error('로그아웃 실패:', error);
-          }
-          
-          clearLoginUI();
-          
-          if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-            google.accounts.id.disableAutoSelect();
-          }
-          
-          window.dispatchEvent(new CustomEvent('jb777-logout'));
-        });
-      }
-    });
+
+      if (userNameEl) userNameEl.textContent = nick;
+      if (userInfoEl) userInfoEl.classList.add('active');
+      if (signInBtn) signInBtn.style.display = 'none';
+    }
+
+    // 닫기 헬퍼
+    function closeOverlayIfOpen() {
+      const overlay = document.getElementById('loginOverlay');
+      if (overlay && overlay.style && overlay.style.display !== 'none') overlay.style.display = 'none';
+      if (overlay && overlay.classList.contains('show')) overlay.classList.remove('show');
+    }
   </script>
 
+  <!-- 메인 스크립트: UI, 오버레이, 슬라이더, 통계 등 (원본 로직 + 로그인 흐름 통합) -->
   <script type="module">
-    // ===== 기존 코드 유지 =====
-    
-    // 채팅 Firebase 초기화
+    // ===== 기존 코드 유지 (Firebase 초기화 등) =====
     const chatFirebaseConfig = {
       apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
       authDomain: "chat-6086d.firebaseapp.com",
@@ -894,7 +933,6 @@
     const chatApp = firebase.initializeApp(chatFirebaseConfig, "chat");
     const chatDb = firebase.database(chatApp);
 
-    // URL 단축 Firebase 초기화
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
     
@@ -911,6 +949,147 @@
     
     const urlApp = initializeApp(urlFirebaseConfig);
     const urlDb = getDatabase(urlApp);
+
+    // ===== UI 요소들 =====
+    const loginInitBtn = document.getElementById('loginInitBtn'); // may be null if not used
+    const loginOverlay = document.getElementById('loginOverlay');
+    const overlayClose = document.getElementById('overlayClose');
+    const googleLoginBtn = document.getElementById('googleLoginBtn');
+    const jbLoginBtn = document.getElementById('jbLoginBtn');
+    const nicknameModal = document.getElementById('nicknameModal');
+    const nicknameInput = document.getElementById('nicknameInput');
+    const saveNickname = document.getElementById('saveNickname');
+    const cancelNickname = document.getElementById('cancelNickname');
+    const navMenu = document.getElementById('navMenu');
+    const menuToggle = document.getElementById('menuToggle');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userInfoEl = document.getElementById('userInfo');
+    const userNameEl = document.getElementById('userName');
+
+    // overlay open/close helpers (overlay may be controlled via style.display for compatibility)
+    function openOverlay() {
+      if (loginOverlay) {
+        loginOverlay.style.display = 'flex';
+        loginOverlay.classList.add('show');
+        nicknameModal.style.display = 'none';
+        document.getElementById('loginOptions').style.display = 'flex';
+      }
+    }
+    function closeOverlay() {
+      if (loginOverlay) {
+        loginOverlay.style.display = 'none';
+        loginOverlay.classList.remove('show');
+      }
+    }
+
+    // If a dedicated "로그인" button exists (some builds), attach it; else we rely on GSI button
+    const possibleLoginBtn = document.getElementById('loginInitBtn');
+    if (possibleLoginBtn) {
+      possibleLoginBtn.addEventListener('click', openOverlay);
+    }
+
+    if (overlayClose) overlayClose.addEventListener('click', closeOverlay);
+    if (loginOverlay) {
+      loginOverlay.addEventListener('click', (e) => {
+        if (e.target === loginOverlay) closeOverlay();
+      });
+    }
+
+    // GSI: If user clicks our overlay Google button, trigger GSI prompt
+    if (googleLoginBtn) {
+      googleLoginBtn.addEventListener('click', () => {
+        if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+          alert('Google 로그인 스크립트가 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
+          return;
+        }
+        try {
+          google.accounts.id.initialize({
+            client_id: document.getElementById('g_id_onload').dataset.client_id,
+            callback: handleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true
+          });
+          google.accounts.id.prompt();
+        } catch (e) {
+          console.error('GSI 초기화 실패:', e);
+          alert('구글 로그인 초기화 중 오류가 발생했습니다. 콘솔을 확인하세요.');
+        }
+      });
+    }
+
+    // jb 로그인: 닉네임 입력 흐름
+    if (jbLoginBtn) {
+      jbLoginBtn.addEventListener('click', () => {
+        document.getElementById('loginOptions').style.display = 'none';
+        nicknameModal.style.display = 'flex';
+        nicknameModal.setAttribute('aria-hidden', 'false');
+        nicknameInput.focus();
+      });
+    }
+
+    if (cancelNickname) {
+      cancelNickname.addEventListener('click', () => {
+        nicknameInput.value = '';
+        nicknameModal.style.display = 'none';
+        document.getElementById('loginOptions').style.display = 'flex';
+      });
+    }
+
+    if (saveNickname) {
+      saveNickname.addEventListener('click', () => {
+        const val = nicknameInput.value.trim();
+        if (!val) {
+          alert('닉네임을 입력해주세요.');
+          nicknameInput.focus();
+          return;
+        }
+        updateLoginUIFromNickname(val);
+        nicknameInput.value = '';
+        if (loginOverlay) closeOverlay();
+        window.dispatchEvent(new CustomEvent('jb777-login', { detail: { name: val, source: 'local-nickname' } }));
+      });
+    }
+
+    // 로그아웃 처리
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        try {
+          localStorage.removeItem('jb777_googleUser');
+          localStorage.removeItem('nickname');
+          localStorage.removeItem('user_displayName');
+          localStorage.removeItem('user_photoURL');
+        } catch (e) {
+          console.warn('로컬 스토리지 삭제 실패:', e);
+        }
+        clearLoginUI();
+        if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+          try { google.accounts.id.disableAutoSelect(); } catch(e) {}
+        }
+        window.dispatchEvent(new CustomEvent('jb777-logout'));
+      });
+    }
+
+    // 초기 로드 시 로컬 스토리지에서 상태 복원
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        const savedUser = localStorage.getItem('jb777_googleUser');
+        const nickname = localStorage.getItem('nickname');
+        const displayName = localStorage.getItem('user_displayName');
+
+        if (savedUser) {
+          const userData = JSON.parse(savedUser);
+          updateLoginUIFromGSI(userData);
+        } else if (nickname || displayName) {
+          updateLoginUIFromNickname(nickname || displayName);
+        } else {
+          clearLoginUI();
+        }
+      } catch (error) {
+        console.error('로그인 정보 불러오기 실패:', error);
+      }
+    });
+
+    // ===== 기존 슬라이더 및 통계 관련 코드 (원본 유지) =====
 
     // 롤링 숫자 애니메이션 함수
     function createSlotMachineNumber(container, number) {
@@ -990,7 +1169,7 @@
       }
     }
 
-    // 채팅 카운트 처리
+    // 채팅 카운트 처리 (원본 유지)
     let previousChatCount = 0;
     const chatCountElement = document.getElementById('chatCount');
     let chatHasAnimated = false;
@@ -1031,7 +1210,7 @@
       }
     });
 
-    // URL 카운트 처리
+    // URL 카운트 처리 (원본 유지)
     let previousUrlCount = 0;
     const urlCountElement = document.getElementById('urlCount');
     let urlHasAnimated = false;
@@ -1052,8 +1231,6 @@
     });
 
     // 햄버거 메뉴
-    const menuToggle = document.getElementById('menuToggle');
-    const navMenu = document.getElementById('navMenu');
     menuToggle.addEventListener('click', () => {
       navMenu.classList.toggle('active');
     });
