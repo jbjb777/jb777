@@ -47,8 +47,6 @@
     ]
   }
   </script>
-
-  <!-- Google Identity Services (kept) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
@@ -141,19 +139,9 @@
       transform: translateY(-2px);
     }
 
-    /* show the custom login button initially */
-    #loginInitBtn {
-      background: #3663FF;
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 20px;
-      border: none;
-      cursor: pointer;
-      font-weight: 700;
+    .g_id_signin {
+      display: inline-block;
     }
-
-    /* keep default GSI element hidden (we use our own UI) */
-    .g_id_signin { display: none; }
 
     nav {
       display: flex;
@@ -680,9 +668,6 @@
             data-text="signin_with"
             data-logo_alignment="center">
         </div>
-
-        <!-- Initial visible 로그인 버튼 -->
-        <button id="loginInitBtn">로그인</button>
       </div>
 
       <button class="menu-toggle" id="menuToggle">☰</button>
@@ -786,40 +771,10 @@
     </div>
   </footer>
 
-  <!-- 로그인 오버레이 (전체화면 블러 + 모달) -->
-  <div id="loginOverlay" class="overlay" aria-hidden="true" role="dialog">
-    <div class="modal" role="document">
-      <button class="close-x" id="overlayClose" title="나가기">✕</button>
-      <h2>로그인</h2>
-
-      <div class="login-options" id="loginOptions">
-        <button id="googleLoginBtn" class="login-btn google" title="구글 계정으로 로그인">
-          <img src="google.png" alt="Google" />
-          <span>구글 계정으로 로그인</span>
-        </button>
-
-        <button id="jbLoginBtn" class="login-btn jb" title="정빈777 로 로그인">
-          <img src="logo.svg" alt="정빈777" />
-          <span>정빈777 로 로그인</span>
-        </button>
-      </div>
-
-      <!-- 닉네임 입력 모달(정빈777 로그인 흐름) -->
-      <div id="nicknameModal" class="nickname-modal" aria-hidden="true">
-        <label for="nicknameInput"><strong>여기서 사용할 닉네임을 입력해주세요</strong></label>
-        <input id="nicknameInput" class="input" type="text" placeholder="예: 정빈777" maxlength="30" />
-        <div class="modal-footer">
-          <button id="cancelNickname" class="btn secondary">취소</button>
-          <button id="saveNickname" class="btn primary">저장하고 로그인</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-  <!-- 구글 로그인만 일반 스크립트로 처리 -->
+  <!-- 구글 로그인만 일반 스크립트로 처리l -->
   <script>
     // JWT 파싱 함수
     function parseJwt(token) {
@@ -861,10 +816,6 @@
           picture: data.picture,
           sub: data.sub
         }));
-        // 호환을 위해 nickname, user_displayName도 동일하게 저장
-        localStorage.setItem('nickname', data.name);
-        localStorage.setItem('user_displayName', data.name);
-        localStorage.setItem('user_photoURL', data.picture || '');
       } catch (error) {
         console.error('로컬 스토리지 저장 실패:', error);
       }
@@ -878,23 +829,19 @@
       const userNameEl = document.getElementById('userName');
       const userInfoEl = document.getElementById('userInfo');
       const signInBtn = document.getElementById('googleSignInBtn');
-      const loginInitBtn = document.getElementById('loginInitBtn');
       
       if (userNameEl) userNameEl.textContent = userData.name;
       if (userInfoEl) userInfoEl.classList.add('active');
       if (signInBtn) signInBtn.style.display = 'none';
-      if (loginInitBtn) loginInitBtn.style.display = 'none';
     }
 
     // UI 초기화 함수
     function clearLoginUI() {
       const userInfoEl = document.getElementById('userInfo');
       const signInBtn = document.getElementById('googleSignInBtn');
-      const loginInitBtn = document.getElementById('loginInitBtn');
       
       if (userInfoEl) userInfoEl.classList.remove('active');
       if (signInBtn) signInBtn.style.display = 'inline-block';
-      if (loginInitBtn) loginInitBtn.style.display = 'inline-block';
     }
 
     // 페이지 로드 시 로그인 상태 확인
@@ -915,9 +862,6 @@
         logoutBtn.addEventListener('click', function() {
           try {
             localStorage.removeItem('jb777_googleUser');
-            localStorage.removeItem('nickname');
-            localStorage.removeItem('user_displayName');
-            localStorage.removeItem('user_photoURL');
           } catch (error) {
             console.error('로그아웃 실패:', error);
           }
@@ -1072,9 +1016,9 @@
       threshold: 0.3
     });
 
-    if (chatStatsSection) chatObserver.observe(chatStatsSection);
+    chatObserver.observe(chatStatsSection);
 
-    if (chatCountElement) createSlotMachineNumber(chatCountElement, 0);
+    createSlotMachineNumber(chatCountElement, 0);
 
     chatDb.ref("messages").on("value", (snapshot) => {
       const data = snapshot.val();
@@ -1093,7 +1037,7 @@
     let urlHasAnimated = false;
     let actualUrlCount = 0;
 
-    if (urlCountElement) createSlotMachineNumber(urlCountElement, 0);
+    createSlotMachineNumber(urlCountElement, 0);
 
     const urlsRef = ref(urlDb, 'urls');
     onValue(urlsRef, (snapshot) => {
@@ -1110,7 +1054,9 @@
     // 햄버거 메뉴
     const menuToggle = document.getElementById('menuToggle');
     const navMenu = document.getElementById('navMenu');
-    if (menuToggle) menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active');
+    });
 
     // 상단 버튼 이벤트
     document.getElementById('openLinkBtn1').addEventListener('click', () => window.open('https://naver.me/xAWjFEtu', '_blank'));
@@ -1158,8 +1104,17 @@
       clearInterval(autoSlideInterval);
     }
 
-    if (prevBtn) prevBtn.addEventListener('click', () => { prevSlide(); stopAutoSlide(); startAutoSlide(); });
-    if (nextBtn) nextBtn.addEventListener('click', () => { nextSlide(); stopAutoSlide(); startAutoSlide(); });
+    prevBtn.addEventListener('click', () => {
+      prevSlide();
+      stopAutoSlide();
+      startAutoSlide();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      nextSlide();
+      stopAutoSlide();
+      startAutoSlide();
+    });
 
     indicators.forEach((indicator) => {
       indicator.addEventListener('click', () => {
@@ -1170,17 +1125,15 @@
       });
     });
 
-    if (document.getElementById('homeImg')) document.getElementById('homeImg').addEventListener('click', () => window.location.href = 'https://jbjb.r-e.kr');
-    if (document.getElementById('chatImg')) document.getElementById('chatImg').addEventListener('click', () => window.location.href = 'chat.html');
-    if (document.getElementById('gifsvgImg')) document.getElementById('gifsvgImg').addEventListener('click', () => window.location.href = 'gifsvg.html');
-    if (document.getElementById('wikiImg')) document.getElementById('wikiImg').addEventListener('click', () => window.open('https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82', '_blank'));
+    document.getElementById('homeImg').addEventListener('click', () => window.location.href = 'https://jbjb.r-e.kr');
+    document.getElementById('chatImg').addEventListener('click', () => window.location.href = 'chat.html');
+    document.getElementById('gifsvgImg').addEventListener('click', () => window.location.href = 'gifsvg.html');
+    document.getElementById('wikiImg').addEventListener('click', () => window.open('https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82', '_blank'));
 
     startAutoSlide();
 
-    if (document.querySelector('.slider-container')) {
-      document.querySelector('.slider-container').addEventListener('mouseenter', stopAutoSlide);
-      document.querySelector('.slider-container').addEventListener('mouseleave', startAutoSlide);
-    }
+    document.querySelector('.slider-container').addEventListener('mouseenter', stopAutoSlide);
+    document.querySelector('.slider-container').addEventListener('mouseleave', startAutoSlide);
 
     // 프로젝트 정보
     const projectsData = {
@@ -1232,167 +1185,5 @@
     loadProjectInfo();
   </script>
 
-  <!-- Overlay/login behavior (ensures original UI below header still visible) -->
-  <script>
-    (function () {
-      const loginInitBtn = document.getElementById('loginInitBtn');
-      const loginOverlay = document.getElementById('loginOverlay');
-      const overlayClose = document.getElementById('overlayClose');
-      const googleLoginBtn = document.getElementById('googleLoginBtn');
-      const jbLoginBtn = document.getElementById('jbLoginBtn');
-      const nicknameModal = document.getElementById('nicknameModal');
-      const nicknameInput = document.getElementById('nicknameInput');
-      const saveBtn = document.getElementById('saveNickname');
-      const cancelNickname = document.getElementById('cancelNickname');
-      const logoutBtn = document.getElementById('logoutBtn');
-
-      function openOverlay() {
-        if (loginOverlay) {
-          loginOverlay.classList.add('show');
-          loginOverlay.setAttribute('aria-hidden', 'false');
-          nicknameModal.classList.remove('show');
-          document.getElementById('loginOptions').style.display = 'flex';
-        }
-      }
-      function closeOverlay() {
-        if (loginOverlay) {
-          loginOverlay.classList.remove('show');
-          loginOverlay.setAttribute('aria-hidden', 'true');
-        }
-      }
-
-      if (loginInitBtn) loginInitBtn.addEventListener('click', openOverlay);
-      if (overlayClose) overlayClose.addEventListener('click', closeOverlay);
-      if (loginOverlay) loginOverlay.addEventListener('click', (e) => { if (e.target === loginOverlay) closeOverlay(); });
-
-      // Google login handler: initialize GSI and prompt immediately
-      if (googleLoginBtn) {
-        googleLoginBtn.addEventListener('click', () => {
-          if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
-            alert('Google 로그인 스크립트가 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
-            return;
-          }
-          try {
-            google.accounts.id.initialize({
-              client_id: document.getElementById('g_id_onload').dataset.client_id,
-              callback: handleCredentialResponse,
-              auto_select: false,
-              cancel_on_tap_outside: true
-            });
-            google.accounts.id.prompt();
-          } catch (e) {
-            console.error('GSI 초기화 실패:', e);
-            alert('구글 로그인 초기화 중 오류가 발생했습니다. 콘솔을 확인하세요.');
-          }
-        });
-      }
-
-      // JB nickname login: show nickname input modal
-      if (jbLoginBtn) {
-        jbLoginBtn.addEventListener('click', () => {
-          document.getElementById('loginOptions').style.display = 'none';
-          nicknameModal.classList.add('show');
-          nicknameModal.setAttribute('aria-hidden', 'false');
-          if (nicknameInput) nicknameInput.focus();
-        });
-      }
-
-      if (cancelNickname) {
-        cancelNickname.addEventListener('click', () => {
-          if (nicknameInput) nicknameInput.value = '';
-          nicknameModal.classList.remove('show');
-          document.getElementById('loginOptions').style.display = 'flex';
-        });
-      }
-
-      if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-          if (!nicknameInput) return;
-          const val = nicknameInput.value.trim();
-          if (!val) {
-            alert('닉네임을 입력해주세요.');
-            nicknameInput.focus();
-            return;
-          }
-          try {
-            const pseudo = { name: val, email: '', picture: 'logo.svg', sub: 'local-' + val };
-            localStorage.setItem('jb777_googleUser', JSON.stringify(pseudo));
-            localStorage.setItem('nickname', val);
-            localStorage.setItem('user_displayName', val);
-            localStorage.setItem('user_photoURL', 'logo.svg');
-          } catch (e) {
-            console.warn('로컬 스토리지 저장 실패:', e);
-          }
-
-          // update header UI
-          const userNameEl = document.getElementById('userName');
-          const userInfoEl = document.getElementById('userInfo');
-          const loginBtn = document.getElementById('loginInitBtn');
-          if (userNameEl) userNameEl.textContent = val;
-          if (userInfoEl) userInfoEl.classList.add('active');
-          if (loginBtn) loginBtn.style.display = 'none';
-
-          nicknameInput.value = '';
-          closeOverlay();
-          window.dispatchEvent(new CustomEvent('jb777-login', { detail: { name: val, source: 'local-nickname' } }));
-        });
-      }
-
-      // logout: clear and restore
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-          try {
-            localStorage.removeItem('jb777_googleUser');
-            localStorage.removeItem('nickname');
-            localStorage.removeItem('user_displayName');
-            localStorage.removeItem('user_photoURL');
-          } catch (e) { console.warn('로컬 스토리지 삭제 실패:', e); }
-
-          const userInfoEl = document.getElementById('userInfo');
-          const userNameEl = document.getElementById('userName');
-          const loginBtn = document.getElementById('loginInitBtn');
-          if (userInfoEl) userInfoEl.classList.remove('active');
-          if (userNameEl) userNameEl.textContent = '';
-          if (loginBtn) loginBtn.style.display = 'inline-block';
-
-          if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-            try { google.accounts.id.disableAutoSelect(); } catch (e) {}
-          }
-          window.dispatchEvent(new CustomEvent('jb777-logout'));
-        });
-      }
-
-      // restore login UI from localStorage on load (keeps original behavior)
-      document.addEventListener('DOMContentLoaded', function() {
-        try {
-          const savedUser = localStorage.getItem('jb777_googleUser');
-          const nickname = localStorage.getItem('nickname');
-          const displayName = localStorage.getItem('user_displayName');
-
-          if (savedUser) {
-            const userData = JSON.parse(savedUser);
-            const userNameEl = document.getElementById('userName');
-            const userInfoEl = document.getElementById('userInfo');
-            const loginBtn = document.getElementById('loginInitBtn');
-            if (userNameEl) userNameEl.textContent = userData.name;
-            if (userInfoEl) userInfoEl.classList.add('active');
-            if (loginBtn) loginBtn.style.display = 'none';
-          } else if (nickname || displayName) {
-            const userNameEl = document.getElementById('userName');
-            const userInfoEl = document.getElementById('userInfo');
-            const loginBtn = document.getElementById('loginInitBtn');
-            if (userNameEl) userNameEl.textContent = nickname || displayName;
-            if (userInfoEl) userInfoEl.classList.add('active');
-            if (loginBtn) loginBtn.style.display = 'none';
-          } else {
-            const loginBtn = document.getElementById('loginInitBtn');
-            if (loginBtn) loginBtn.style.display = 'inline-block';
-          }
-        } catch (e) {
-          console.error('로그인 복원 실패', e);
-        }
-      });
-    })();
-  </script>
 </body>
 </html>
