@@ -386,9 +386,96 @@
       transform: translateY(-2px) scale(1.02);
     }
 
-    .featured-works {
+    /* 서비스 소개 섹션 추가 */
+    .service-intro {
       padding: 60px 40px;
       background: #1a1a1a;
+    }
+
+    .service-intro .section-title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #ffffff;
+      text-align: left;
+    }
+
+    .service-description {
+      font-size: 18px;
+      color: #aaa;
+      margin-bottom: 40px;
+      line-height: 1.8;
+    }
+
+    .service-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: #2a2a2a;
+      padding: 30px 25px;
+      border-radius: 16px;
+      border: 2px solid rgba(54, 99, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(54, 99, 255, 0.5);
+      box-shadow: 0 12px 35px rgba(54, 99, 255, 0.3);
+    }
+
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 18px;
+    }
+
+    .feature-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .feature-desc {
+      font-size: 15px;
+      color: #bbb;
+      line-height: 1.7;
+    }
+
+    .google-login-notice {
+      margin-top: 40px;
+      padding: 25px;
+      background: rgba(54, 99, 255, 0.1);
+      border-radius: 12px;
+      border: 2px solid rgba(54, 99, 255, 0.3);
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .google-login-notice h3 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      color: #3663FF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .google-login-notice p {
+      font-size: 15px;
+      color: #ccc;
+      line-height: 1.8;
+    }
+
+    .featured-works {
+      padding: 60px 40px;
+      background: #121212;
     }
 
     .section-title {
@@ -624,6 +711,35 @@
         padding: 10px 20px;
         margin-left: 5px;
       }
+
+      .service-intro {
+        padding: 40px 20px;
+      }
+
+      .service-intro .section-title {
+        font-size: 28px;
+      }
+
+      .service-description {
+        font-size: 16px;
+      }
+
+      .service-features {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .google-login-notice {
+        padding: 20px;
+      }
+
+      .google-login-notice h3 {
+        font-size: 18px;
+      }
+
+      .google-login-notice p {
+        font-size: 14px;
+      }
       
       .works-grid { grid-template-columns: 1fr; }
       .featured-works { padding: 40px 20px; }
@@ -725,6 +841,55 @@
       </div>
     </section>
 
+    <!-- 서비스 소개 섹션 -->
+    <section class="service-intro">
+      <h2 class="section-title">서비스 소개</h2>
+      <p class="service-description">
+        JBJB 서비스는 Google 계정으로 간편하게 로그인하여 실시간 채팅, URL 단축, 파일 공유 등 다양한 웹 기반 유틸리티 기능을 이용할 수 있는 개인 프로젝트 기반의 웹 애플리케이션입니다.
+      </p>
+
+      <div class="service-features">
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <div class="feature-title">Google 간편 로그인</div>
+          <div class="feature-desc">
+            별도의 회원가입 없이 Google 계정만으로 모든 서비스를 이용할 수 있습니다.
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <div class="feature-title">실시간 채팅</div>
+          <div class="feature-desc">
+            Firebase 기반 실시간 채팅으로 다른 사용자들과 즉시 소통할 수 있습니다.
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔗</div>
+          <div class="feature-title">URL 단축 서비스</div>
+          <div class="feature-desc">
+            긴 URL을 짧고 간편한 링크로 변환하여 쉽게 공유하고 관리할 수 있습니다.
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📁</div>
+          <div class="feature-title">파일 & 이미지 공유</div>
+          <div class="feature-desc">
+            파일과 이미지를 업로드하고 다른 사용자들과 간편하게 공유할 수 있습니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="google-login-notice">
+        <h3>🔒 왜 Google 로그인을 사용하나요?</h3>
+        <p>
+          JBJB 서비스는 사용자 인증을 위해 Google OAuth를 사용합니다. 이를 통해 안전하고 편리하게 서비스를 이용할 수 있으며, Google 계정 이름과 이메일 정보만 수집하여 서비스 제공 목적으로만 사용합니다. 수집된 정보는 외부에 제공되지 않으며, 사용자가 요청 시 즉시 삭제됩니다.
+        </p>
+      </div>
+    </section>
+
     <section class="featured-works">
       <h2 class="section-title">대표 작품들</h2>
       <div class="works-grid">
@@ -774,7 +939,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-  <!-- 구글 로그인만 일반 스크립트로 처리l -->
   <script>
     // JWT 파싱 함수
     function parseJwt(token) {
@@ -808,7 +972,6 @@
         return;
       }
       
-      // localStorage에 저장
       try {
         localStorage.setItem('jb777_googleUser', JSON.stringify({
           name: data.name,
@@ -824,7 +987,6 @@
       window.dispatchEvent(new CustomEvent('jb777-login', { detail: data }));
     };
 
-    // UI 업데이트 함수
     function updateLoginUI(userData) {
       const userNameEl = document.getElementById('userName');
       const userInfoEl = document.getElementById('userInfo');
@@ -835,7 +997,6 @@
       if (signInBtn) signInBtn.style.display = 'none';
     }
 
-    // UI 초기화 함수
     function clearLoginUI() {
       const userInfoEl = document.getElementById('userInfo');
       const signInBtn = document.getElementById('googleSignInBtn');
@@ -844,7 +1005,6 @@
       if (signInBtn) signInBtn.style.display = 'inline-block';
     }
 
-    // 페이지 로드 시 로그인 상태 확인
     document.addEventListener('DOMContentLoaded', function() {
       try {
         const savedUser = localStorage.getItem('jb777_googleUser');
@@ -856,7 +1016,6 @@
         console.error('로그인 정보 불러오기 실패:', error);
       }
       
-      // 로그아웃 버튼 이벤트
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
@@ -879,9 +1038,6 @@
   </script>
 
   <script type="module">
-    // ===== 기존 코드 유지 =====
-    
-    // 채팅 Firebase 초기화
     const chatFirebaseConfig = {
       apiKey: "AIzaSyBfIl-EOdhEiJSZokBarnp8x4XhcCnPlPA",
       authDomain: "chat-6086d.firebaseapp.com",
@@ -894,7 +1050,6 @@
     const chatApp = firebase.initializeApp(chatFirebaseConfig, "chat");
     const chatDb = firebase.database(chatApp);
 
-    // URL 단축 Firebase 초기화
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
     
@@ -912,7 +1067,6 @@
     const urlApp = initializeApp(urlFirebaseConfig);
     const urlDb = getDatabase(urlApp);
 
-    // 롤링 숫자 애니메이션 함수
     function createSlotMachineNumber(container, number) {
       const numStr = number.toLocaleString();
       container.innerHTML = '';
@@ -990,7 +1144,6 @@
       }
     }
 
-    // 채팅 카운트 처리
     let previousChatCount = 0;
     const chatCountElement = document.getElementById('chatCount');
     let chatHasAnimated = false;
@@ -1031,7 +1184,6 @@
       }
     });
 
-    // URL 카운트 처리
     let previousUrlCount = 0;
     const urlCountElement = document.getElementById('urlCount');
     let urlHasAnimated = false;
@@ -1051,14 +1203,12 @@
       }
     });
 
-    // 햄버거 메뉴
     const menuToggle = document.getElementById('menuToggle');
     const navMenu = document.getElementById('navMenu');
     menuToggle.addEventListener('click', () => {
       navMenu.classList.toggle('active');
     });
 
-    // 상단 버튼 이벤트
     document.getElementById('openLinkBtn1').addEventListener('click', () => window.open('https://naver.me/xAWjFEtu', '_blank'));
     document.getElementById('openLinkBtn2').addEventListener('click', () => window.location.href = 'gifsvg.html');
     document.getElementById('openLinkBtn3').addEventListener('click', () => window.location.href = 'https://entrywiki.org/w/%E3%8B%A1%EA%A7%81%EC%A0%95%EB%B9%88777%EA%A7%82');
@@ -1066,11 +1216,9 @@
     document.getElementById('chatBtn').addEventListener('click', () => window.location.href = 'chat.html');
     document.getElementById('urlBtn').addEventListener('click', () => window.location.href = 'https://url.jbjb.r-e.kr');
     
-    // 통계 바로가기 버튼
     document.getElementById('goToChatBtn').addEventListener('click', () => window.location.href = 'chat.html');
     document.getElementById('goToUrlBtn').addEventListener('click', () => window.location.href = 'https://url.jbjb.r-e.kr');
 
-    // 슬라이더 기능
     const slides = document.getElementById('slides');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -1135,7 +1283,6 @@
     document.querySelector('.slider-container').addEventListener('mouseenter', stopAutoSlide);
     document.querySelector('.slider-container').addEventListener('mouseleave', startAutoSlide);
 
-    // 프로젝트 정보
     const projectsData = {
       '687098313bbdde284716010e': {
         name: '엔트리 비행기2',
