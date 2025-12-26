@@ -24,6 +24,7 @@
     border-radius: 12px;
     line-height: 1.4;
     white-space: pre-wrap;
+    word-break: break-word;
   }
   .user {
     background: #4f46e5;
@@ -67,15 +68,26 @@
 <div id="chat"></div>
 
 <div id="inputBox">
-  <input id="msg" placeholder="메시지를 입력하세요" onkeydown="if(event.key==='Enter') send()">
+  <input
+    id="msg"
+    placeholder="메시지를 입력하세요"
+    oncompositionstart="isComposing = true"
+    oncompositionend="isComposing = false"
+    onkeydown="handleKey(event)"
+  >
   <button onclick="send()">전송</button>
 </div>
 
 <script>
+/* ⚠️ 로컬 테스트용 API 키 */
 const GROQ_API_KEY = "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";
+
+/* 한글 IME 조합 상태 */
+let isComposing = false;
 
 const chat = document.getElementById("chat");
 
+/* 메시지 추가 */
 function addMessage(text, type) {
   const div = document.createElement("div");
   div.className = "msg " + type;
@@ -84,43 +96,57 @@ function addMessage(text, type) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+/* Enter 처리 (한글 중복 방지 핵심) */
+function handleKey(e) {
+  if (e.key === "Enter" && !isComposing) {
+    e.preventDefault();
+    send();
+  }
+}
+
+/* 메시지 전송 */
 async function send() {
   const input = document.getElementById("msg");
   const message = input.value.trim();
   if (!message) return;
 
-  // 1️⃣ 내가 쓴 말 즉시 표시
+  // 1️⃣ 사용자 메시지 즉시 표시
   addMessage(message, "user");
   input.value = "";
 
-  // 2️⃣ AI에게 전달
-  const res = await fetch(
-    "https://api.groq.com/openai/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        messages: [
-          { role: "system", content: "너는 친절한 대화형 AI야." },
-          { role: "user", content: message }
-        ]
-      })
+  try {
+    // 2️⃣ Groq API 호출
+    const res = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            { role: "system", content: "너는 친절한 대화형 AI야." },
+            { role: "user", content: message }
+          ]
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.error) {
+      addMessage("❌ 오류: " + data.error.message, "ai");
+      return;
     }
-  );
 
-  const data = await res.json();
+    // 3️⃣ AI 답변 표시
+    addMessage(data.choices[0].message.content, "ai");
 
-  if (data.error) {
-    addMessage("오류: " + data.error.message, "ai");
-    return;
+  } catch (err) {
+    addMessage("❌ 네트워크 오류", "ai");
   }
-
-  // 3️⃣ AI 답변 표시
-  addMessage(data.choices[0].message.content, "ai");
 }
 </script>
 
