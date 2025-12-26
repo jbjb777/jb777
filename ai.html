@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Local AI Chat (Groq)</title>
+<style>
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  #chat {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  .msg {
+    max-width: 70%;
+    padding: 10px 14px;
+    margin: 8px 0;
+    border-radius: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+  .user {
+    background: #4f46e5;
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+  }
+  .ai {
+    background: white;
+    color: black;
+    margin-right: auto;
+    border-bottom-left-radius: 4px;
+  }
+  #inputBox {
+    display: flex;
+    padding: 10px;
+    background: white;
+    border-top: 1px solid #ddd;
+  }
+  input {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  button {
+    margin-left: 8px;
+    padding: 10px 16px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    background: #4f46e5;
+    color: white;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div id="chat"></div>
+
+<div id="inputBox">
+  <input id="msg" placeholder="메시지를 입력하세요" onkeydown="if(event.key==='Enter') send()">
+  <button onclick="send()">전송</button>
+</div>
+
+<script>
+const GROQ_API_KEY = "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";
+
+const chat = document.getElementById("chat");
+
+function addMessage(text, type) {
+  const div = document.createElement("div");
+  div.className = "msg " + type;
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function send() {
+  const input = document.getElementById("msg");
+  const message = input.value.trim();
+  if (!message) return;
+
+  // 1️⃣ 내가 쓴 말 즉시 표시
+  addMessage(message, "user");
+  input.value = "";
+
+  // 2️⃣ AI에게 전달
+  const res = await fetch(
+    "https://api.groq.com/openai/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "llama3-8b-8192",
+        messages: [
+          { role: "system", content: "너는 친절한 대화형 AI야." },
+          { role: "user", content: message }
+        ]
+      })
+    }
+  );
+
+  const data = await res.json();
+
+  if (data.error) {
+    addMessage("오류: " + data.error.message, "ai");
+    return;
+  }
+
+  // 3️⃣ AI 답변 표시
+  addMessage(data.choices[0].message.content, "ai");
+}
+</script>
+
+</body>
+</html>
