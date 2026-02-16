@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>마크 스타일 3D 블록 게임 (한 파일)</title>
+    <style>
+        body { margin:0; overflow:hidden; background:#000; font-family:Arial, sans-serif; }
+        canvas { display:block; }
+        #crosshair {
+            position: absolute;
+            top: 50%; left: 50%;
+            font-size: 40px;
+            color: #fff;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            text-shadow: 0 0 10px #000;
+            user-select: none;
+        }
+        #hotbar {
+            position: absolute;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px;
+            border-radius: 12px;
+            border: 3px solid #555;
+        }
+        .slot {
+            width: 64px; height: 64px;
+            background: #222;
+            border: 3px solid #777;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .slot.selected {
+            border-color: #fff;
+            box-shadow: 0 0 15px #fff;
+            transform: scale(1.1);
+        }
+        #info {
+            position: absolute;
+            top: 10px; left: 10px;
+            color: #fff;
+            background: rgba(0,0,0,0.5);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="c"></canvas>
+    <div id="crosshair">+</div>
+    <div id="hotbar"></div>
+    <div id="info">
+        WASD = 이동 (플라이 모드)<br>
+        마우스 = 시점 조작<br>
+        좌클릭 길게 누르기 = 캐기 (블록마다 시간 다름)<br>
+        우클릭 = 설치<br>
+        1~4 = 인벤토리 선택<br>
+        클릭해서 포인터 잠금 시작
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script>
+        // ==================== 기본 설정 ====================
+        let scene, camera, renderer, clock, raycaster;
+        let blockGroup, blocks = new Map(), blocksMeshes = [];
+        let materials = {};
+        let keys = {};
+        let isPointerLocked = false;
+        let isLeftMouseDown = false;
+        let breaking = null;
+        let targetedPos = null;
+        let targetedMesh = null;
+        let selectedSlot = 0;
+
+        const inventory = [1, 2, 3, 4]; // 1:잔디, 2:흙, 3:돌, 4:나무
+
+        const blockData = {
+            1: { name: "잔디", color: 0x5cb85c },
+            2: { name: "흙",   color: 0xa67c52 },
+            3: { name: "돌",   color: 0x888888 },
+            4: { name: "나무", color: 0xb5651e }
+        };
+
+        const miningTime = { 1: 280, 2: 520, 3: 1480, 4: 780 }; // 밀리초
+
+        // ==================== 초기화 ====================
+        function init() {
+            clock = new THREE.Clock();
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x88ccff);
+            scene.fog = new THREE.FogExp2(0x88ccff, 0.018);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
+            camera.position.set(8, 12, 20);
+
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // 빛
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+            sun.position.set(60, 120, 40);
+            scene.add(sun);
+
+            blockGroup = new THREE.Group();
+            scene.add(blockGroup);
+
+            raycaster = new THREE.Raycaster();
+
+            // 재질 미리 만들기
+            for (let t in blockData) {
+                materials[t] = new THREE.MeshLambertMaterial({
+                    color: blockData[t].color,
+                    flatShading: true
+                });
+            }
+
+            generateWorld();
+            createHotbar();
+
+            // 이벤트
+            window.addEventListener('resize', resize);
+            document.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; if (e.key >= '1' && e.key <= '4') selectSlot(parseInt(e.key)-1); });
+            document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+            document.addEventListener('mousedown', mouseDown);
+            document.addEventListener('mouseup', mouseUp);
+            document.addEventListener('contextmenu', rightClick);
+            document.addEventListener('pointerlockchange', () => isPointerLocked = document.pointerLockElement !== null);
+            document.addEventListener('mousemove', mouseMove);
+
+            const canvas = renderer.domElement;
+            canvas.addEventListener('click', () => { if (!isPointerLocked) canvas.requestPointerLock(); });
+
+            animate();
+        }
+
+        // ==================== 월드 생성 ====================
+        function generateWorld() {
+            const size = 22;
+            for (let x = -size; x <= size; x++) {
+                for (let z = -size; z <= size; z++) {
+                    const h = Math.floor(3 + Math.sin(x * 0.2) * 2.5 + Math.cos(z * 0.18) * 3);
+                    for (let y = -4; y <= h; y++) {
+                        let type = 3; // 돌
+                        if (y > h - 3) type = 2; // 흙
+                        if (y === h) type = 1; // 잔디
+                        createBlock(x, y, z, type);
+                    }
+                }
+            }
+
+            // 간단한 나무 8개
+            const treePos = [[-8,6,-10], [12,5,8], [-15,7,5], [7,4,-15], [18,6,-6], [-5,5,14], [10,7,12], [-12,4,-18]];
+            treePos.forEach(p => {
+                const baseY = p[1];
+                // 나무 기둥
+                for (let i = 0; i < 5; i++) createBlock(p[0], baseY + i, p[2], 4);
+                // 잎사귀 (잔디 색상으로 대체)
+                for (let lx = -2; lx <= 2; lx++) {
+                    for (let lz = -2; lz <= 2; lz++) {
+                        if (Math.abs(lx) + Math.abs(lz) < 4) {
+                            createBlock(p[0] + lx, baseY + 4, p[2] + lz, 1);
+                            createBlock(p[0] + lx, baseY + 5, p[2] + lz, 1);
+                        }
+                    }
+                }
+            });
+        }
+
+        function createBlock(x, y, z, type) {
+            const key = `${x},${y},${z}`;
+            if (blocks.has(key)) return;
+
+            const geo = new THREE.BoxGeometry(1, 1, 1);
+            const mat = materials[type].clone();
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x + 0.5, y + 0.5, z + 0.5);
+            mesh.userData = {
+                x: x, y: y, z: z,
+                type: type,
+                originalColor: mat.color.clone()
+            };
+
+            blockGroup.add(mesh);
+            blocks.set(key, { mesh, type });
+            blocksMeshes.push(mesh);
+        }
+
+        function removeBlock(x, y, z) {
+            const key = `${x},${y},${z}`;
+            if (!blocks.has(key)) return;
+            const data = blocks.get(key);
+            blockGroup.remove(data.mesh);
+            const idx = blocksMeshes.indexOf(data.mesh);
+            if (idx > -1) blocksMeshes.splice(idx, 1);
+            blocks.delete(key);
+        }
+
+        // ==================== 인벤토리 ====================
+        function createHotbar() {
+            const hb = document.getElementById('hotbar');
+            hb.innerHTML = '';
+            for (let i = 0; i < 4; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.dataset.i = i;
+                const t = inventory[i];
+                slot.style.backgroundColor = '#' + blockData[t].color.toString(16).padStart(6, '0');
+                slot.innerHTML = `<span style="font-size:28px; filter: drop-shadow(0 0 4px #000);">${["🌿","🟫","🪨","🪵"][i]}</span>`;
+                slot.onclick = () => selectSlot(i);
+                hb.appendChild(slot);
+            }
+            selectSlot(0);
+        }
+
+        function selectSlot(i) {
+            selectedSlot = i;
+            document.querySelectorAll('.slot').forEach((s, idx) => {
+                s.classList.toggle('selected', idx === i);
+            });
+        }
+
+        // ==================== 컨트롤 ====================
+        function mouseMove(e) {
+            if (!isPointerLocked) return;
+            const sens = 0.0022;
+            camera.rotation.order = 'YXZ';
+            camera.rotation.y -= e.movementX * sens;
+            camera.rotation.x -= e.movementY * sens;
+            camera.rotation.x = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, camera.rotation.x));
+        }
+
+        function mouseDown(e) {
+            if (e.button === 0 && isPointerLocked) isLeftMouseDown = true;
+        }
+
+        function mouseUp(e) {
+            if (e.button === 0) {
+                isLeftMouseDown = false;
+                if (breaking) {
+                    breaking.mesh.material.color.copy(breaking.mesh.userData.originalColor);
+                    breaking = null;
+                }
+            }
+        }
+
+        function rightClick(e) {
+            e.preventDefault();
+            if (!isPointerLocked) return;
+            placeBlock();
+        }
+
+        function handleMovement(delta) {
+            const speed = 22 * delta;
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+
+            if (keys['w']) camera.position.addScaledVector(forward, speed);
+            if (keys['s']) camera.position.addScaledVector(forward, -speed);
+            if (keys['a']) camera.position.addScaledVector(right, -speed);
+            if (keys['d']) camera.position.addScaledVector(right, speed);
+            if (keys[' ']) camera.position.y += speed * 1.6;
+            if (keys['shift']) camera.position.y -= speed * 1.6;
+        }
+
+        function updateTarget() {
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const hits = raycaster.intersectObjects(blocksMeshes);
+            if (hits.length > 0) {
+                targetedMesh = hits[0].object;
+                targetedPos = new THREE.Vector3(
+                    targetedMesh.userData.x,
+                    targetedMesh.userData.y,
+                    targetedMesh.userData.z
+                );
+            } else {
+                targetedPos = null;
+                targetedMesh = null;
+            }
+        }
+
+        function startBreaking() {
+            if (!targetedPos || !targetedMesh) return;
+            breaking = {
+                pos: targetedPos.clone(),
+                mesh: targetedMesh,
+                startTime: Date.now(),
+                type: targetedMesh.userData.type
+            };
+        }
+
+        function handleBreaking() {
+            if (breaking) {
+                // 타겟이 바뀌었으면 취소
+                if (!targetedPos || !targetedPos.equals(breaking.pos)) {
+                    breaking.mesh.material.color.copy(breaking.mesh.userData.originalColor);
+                    breaking = null;
+                    return;
+                }
+
+                const elapsed = Date.now() - breaking.startTime;
+                const need = miningTime[breaking.type] || 500;
+                let prog = Math.min(1, elapsed / need);
+
+                if (prog >= 1) {
+                    removeBlock(breaking.pos.x, breaking.pos.y, breaking.pos.z);
+                    breaking = null;
+                    return;
+                }
+
+                // 캐는 효과 (점점 어두워짐)
+                const dark = new THREE.Color(0x111111);
+                breaking.mesh.material.color.copy(breaking.mesh.userData.originalColor).lerp(dark, prog * 0.85);
+            } else if (isLeftMouseDown && targetedPos) {
+                startBreaking();
+            }
+        }
+
+        function placeBlock() {
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const hits = raycaster.intersectObjects(blocksMeshes);
+            if (hits.length === 0) return;
+
+            const hit = hits[0];
+            const normal = hit.face.normal.clone();
+            normal.round(); // ±1 보장
+
+            const basePos = new THREE.Vector3(
+                hit.object.userData.x,
+                hit.object.userData.y,
+                hit.object.userData.z
+            );
+
+            const placePos = basePos.clone().add(normal);
+
+            // 거리 제한
+            const placeCenter = new THREE.Vector3(placePos.x + 0.5, placePos.y + 0.5, placePos.z + 0.5);
+            if (camera.position.distanceTo(placeCenter) > 7) return;
+
+            const key = `${placePos.x},${placePos.y},${placePos.z}`;
+            if (blocks.has(key)) return;
+
+            const type = inventory[selectedSlot];
+            createBlock(placePos.x, placePos.y, placePos.z, type);
+        }
+
+        function resize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+
+            if (isPointerLocked) handleMovement(delta);
+
+            updateTarget();
+            handleBreaking();
+
+            renderer.render(scene, camera);
+        }
+
+        // ==================== 시작 ====================
+        init();
+    </script>
+</body>
+</html>
