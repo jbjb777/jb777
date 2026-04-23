@@ -138,6 +138,34 @@
   .btn-home svg {
     flex-shrink: 0;
   }
+
+
+
+
+
+.github, .insta, .treads{
+  transition: 
+    transform 0.2s cubic-bezier(0.34,1.56,0.64,1),
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+/* 마우스 올렸을 때 */
+.github:hover, .insta:hover, .treads:hover{
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+/* 클릭할 때 */
+.github:active, .insta:active, .treads:active{
+  transform: scale(0.92);
+}
+
+
+
+
+
+
 </style>
 </head>
 <body>
@@ -154,22 +182,19 @@
 
 
 
+<div class="socials">
   <a class="github" href="https://jbjb777.github.io">
     <img src="./logo/Github.svg">
-    
   </a>
-
 
   <a class="insta" href="https://www.instagram.com/jbineom/">
     <img src="./logo/insta.png">
-    
   </a>
-
 
   <a class="treads" href="https://www.threads.com/@jbineom">
     <img src="./logo/treads.png">
-    
   </a>
+</div>
 
 
 </div>
